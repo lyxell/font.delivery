@@ -225,7 +225,6 @@ func generateWoff2Files(family FontFamily, fontPath string, subsets []string) er
 }
 
 func writeAPIFiles(families []FontFamily, subsets []string) {
-
 	var apiData []map[string]string
 	for _, font := range families {
 		subsetsIntersect := false
@@ -258,18 +257,17 @@ func writeAPIFiles(families []FontFamily, subsets []string) {
 		return
 	}
 
-	err = os.WriteFile("out/api/v1/fonts.json", apiDataBytes, 0644)
+	err = os.WriteFile("out/api/v1/fonts.json", apiDataBytes, 0o644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 	}
 }
 
 func main() {
-	metadataRoot := "/home/user/projects/fonts/ofl"
-	fontPath := "/home/user/projects/fonts"
+	fontPath := "fonts"
 	subsets := []string{"latin"}
 
-	families, err := GatherAllMetadata(metadataRoot)
+	families, err := GatherAllMetadata(fontPath)
 	if err != nil {
 		log.Fatalf("Failed to gather metadata: %v", err)
 	}
