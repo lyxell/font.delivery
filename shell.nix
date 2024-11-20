@@ -8,9 +8,10 @@ pkgs.mkShell {
 	pkgs.harfbuzz
 	pkgs.just
 	pkgs.miniserve
+	pkgs.nodePackages.prettier
+	pkgs.tailwindcss
 	pkgs.typescript
 	pkgs.typescript-language-server
 	pkgs.woff2
-	pkgs.nodePackages.prettier
   ];
 }
