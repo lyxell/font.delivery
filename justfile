@@ -15,3 +15,4 @@ serve:
 
 fmt:
 	gofumpt -w .
+	prettier -w static/

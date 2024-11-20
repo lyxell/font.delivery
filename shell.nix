@@ -11,5 +11,6 @@ pkgs.mkShell {
 	pkgs.typescript
 	pkgs.typescript-language-server
 	pkgs.woff2
+	pkgs.nodePackages.prettier
   ];
 }
