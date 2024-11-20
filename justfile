@@ -4,6 +4,9 @@ build:
 	cat out/*.css > out/_.css
 	cp -r static/* out/
 
+typecheck:
+	tsc -p jsconfig.json
+
 test:
 	go test -coverprofile=coverage.out
 

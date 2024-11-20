@@ -8,6 +8,7 @@ pkgs.mkShell {
 	pkgs.harfbuzz
 	pkgs.just
 	pkgs.miniserve
+	pkgs.typescript
 	pkgs.typescript-language-server
 	pkgs.woff2
   ];
