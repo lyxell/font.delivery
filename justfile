@@ -7,5 +7,8 @@ build:
 test:
 	go test -coverprofile=coverage.out
 
+serve:
+	miniserve --index index.html out/
+
 fmt:
 	gofumpt -w .

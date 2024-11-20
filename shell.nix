@@ -7,9 +7,8 @@ pkgs.mkShell {
 	pkgs.gopls
 	pkgs.harfbuzz
 	pkgs.just
-	pkgs.protobuf
-	pkgs.protoc-gen-go
-	pkgs.woff2
+	pkgs.miniserve
 	pkgs.typescript-language-server
+	pkgs.woff2
   ];
 }
