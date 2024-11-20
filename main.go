@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
-	sync "sync"
+	"sync"
 
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -44,12 +44,12 @@ type FontFamily struct {
 	Minisite string   `json:"minisite_url"`
 }
 
-func ReadProtoFromText(path string) (*FamilyProto, error) {
+// ParseMetadataProtobuf parses a METADATA.pb file.
+func ParseMetadataProtobuf(path string) (*FamilyProto, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-
 	protoInstance := &FamilyProto{}
 	if err := prototext.Unmarshal(data, protoInstance); err != nil {
 		return nil, err
@@ -57,22 +57,19 @@ func ReadProtoFromText(path string) (*FamilyProto, error) {
 	return protoInstance, nil
 }
 
-// GatherAllMetadata walks through the directory and gathers metadata from
-// Protobuf files.
-func GatherAllMetadata(rootDir string) ([]FontFamily, error) {
-	var allMetadata []FontFamily
-
+// GatherMetadata walks through the directory and gathers metadata from all
+// METADATA.pb files it stumbles upon.
+func GatherMetadata(rootDir string) ([]FontFamily, error) {
+	var metadata []FontFamily
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
 		if info.Name() == "METADATA.pb" {
-			familyData, err := ReadProtoFromText(path)
+			familyData, err := ParseMetadataProtobuf(path)
 			if err != nil {
 				return err
 			}
-
 			family := FontFamily{
 				Id:       strings.ToLower(strings.ReplaceAll(familyData.GetName(), " ", "-")),
 				Name:     familyData.GetName(),
@@ -82,7 +79,6 @@ func GatherAllMetadata(rootDir string) ([]FontFamily, error) {
 				Subsets:  familyData.GetSubsets(),
 				Minisite: familyData.GetMinisiteUrl(),
 			}
-
 			for _, fontProto := range familyData.GetFonts() {
 				family.Fonts = append(family.Fonts, Font{
 					Name:       fontProto.GetName(),
@@ -94,7 +90,6 @@ func GatherAllMetadata(rootDir string) ([]FontFamily, error) {
 					Copyright:  fontProto.GetCopyright(),
 				})
 			}
-
 			for _, axisProto := range familyData.GetAxes() {
 				family.Axes = append(family.Axes, Axis{
 					Tag:      axisProto.GetTag(),
@@ -102,17 +97,11 @@ func GatherAllMetadata(rootDir string) ([]FontFamily, error) {
 					MaxValue: axisProto.GetMaxValue(),
 				})
 			}
-
-			allMetadata = append(allMetadata, family)
+			metadata = append(metadata, family)
 		}
-
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return allMetadata, nil
+	return metadata, err
 }
 
 func readUnicodeRanges(filePath string) (string, error) {
@@ -121,17 +110,14 @@ func readUnicodeRanges(filePath string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
-
 	var ranges []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line := scanner.Text()
-		ranges = append(ranges, "U+"+line)
+		ranges = append(ranges, "U+"+scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
 		return "", err
 	}
-
 	return strings.Join(ranges, ", "), nil
 }
 
@@ -267,7 +253,7 @@ func main() {
 	fontPath := "fonts"
 	subsets := []string{"latin"}
 
-	families, err := GatherAllMetadata(fontPath)
+	families, err := GatherMetadata(fontPath)
 	if err != nil {
 		log.Fatalf("Failed to gather metadata: %v", err)
 	}
