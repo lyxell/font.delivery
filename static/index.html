@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/_.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-screen font-inter dark:bg-zinc-900 dark:text-white">
+    <div class="container mx-auto h-screen flex flex-col px-6">
+      <div class="flex justify-between items-center py-4">
+        <div class="text-2xl font-semibold pr-12">font.delivery</div>
+        <nav class="flex gap-6">
+          <input
+            id="previewTextInput"
+            class="border p-2 rounded-sm w-96 bg-transparent"
+            placeholder="Custom text"
+          />
+        </nav>
+        <div>0 fonts selected</div>
+      </div>
+      <div class="overflow-auto flex-grow" id="fonts"></div>
+    </div>
+    <template id="specimenTemplate">
+      <div
+        class="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
+      >
+        <div class="flex justify-between">
+          <slot name="title"></slot>
+        </div>
+        <div class="text-7xl whitespace-nowrap height-[80px]">
+          <slot name="previewText"></slot>
+        </div>
+      </div>
+    </template>
+    <script type="module">
+      import { createElement } from "./utils.js";
+      import VirtualScroll from "./virtual-scroll.js";
+
+      const req = await fetch("/api/v1/fonts.json");
+      const data = await req.json();
+
+      const previewTextInput = document.querySelector("#previewTextInput");
+
+      previewTextInput.oninput = (e) => {
+        previewText = e.target.value;
+        list.render();
+      };
+
+      const QUICK_BROWN_FOX = "The quick brown fox jumps over the lazy dog";
+
+      let previewText = "";
+
+      const renderSpecimen = (specimen) =>
+        createElement("#specimenTemplate", {
+          'slot[name="title"]': (e) => {
+            e.textContent = `${specimen.name} by ${specimen.designer}`;
+          },
+          'slot[name="previewText"]': (e) => {
+            e.className = `font-${specimen.id}`;
+            if (previewText.trim().length > 0) {
+              e.innerHTML = previewText;
+            } else {
+              e.innerHTML = QUICK_BROWN_FOX;
+            }
+          },
+        });
+
+      const list = new VirtualScroll(window.fonts, {
+        itemHeight: 180,
+        numItems: data.length,
+        renderItem: (i) => renderSpecimen(data[i]),
+      });
+    </script>
+  </body>
+</html>

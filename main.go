@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -223,6 +224,46 @@ func generateWoff2Files(family FontFamily, fontPath string, subsets []string) er
 	return nil
 }
 
+func writeAPIFiles(families []FontFamily, subsets []string) {
+
+	var apiData []map[string]string
+	for _, font := range families {
+		subsetsIntersect := false
+		for _, s := range subsets {
+			if slices.Contains(font.Subsets, s) {
+				subsetsIntersect = true
+			}
+		}
+		// Skip fonts that do not have any renderable subsets
+		if !subsetsIntersect {
+			continue
+		}
+		apiData = append(apiData, map[string]string{
+			"id":       font.Id,
+			"name":     font.Name,
+			"designer": font.Designer,
+			"css":      fmt.Sprintf("/%s.css", font.Id),
+		})
+	}
+
+	err := os.MkdirAll("out/api/v1/", os.ModePerm)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+		return
+	}
+
+	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling JSON:", err)
+		return
+	}
+
+	err = os.WriteFile("out/api/v1/fonts.json", apiDataBytes, 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+	}
+}
+
 func main() {
 	metadataRoot := "/home/user/projects/fonts/ofl"
 	fontPath := "/home/user/projects/fonts"
@@ -235,6 +276,8 @@ func main() {
 
 	os.MkdirAll("temp", os.ModePerm)
 	os.MkdirAll("out", os.ModePerm)
+
+	writeAPIFiles(families, subsets)
 
 	generateCSSFiles(families)
 

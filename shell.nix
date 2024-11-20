@@ -10,5 +10,6 @@ pkgs.mkShell {
 	pkgs.protobuf
 	pkgs.protoc-gen-go
 	pkgs.woff2
+	pkgs.typescript-language-server
   ];
 }
