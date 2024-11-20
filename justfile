@@ -1,10 +1,20 @@
-build:
-	rm -rf out
-	go run main.go fonts_public.pb.go
-	cat out/*.css > out/_.css
-	cp -r static/* out/
-	# Generate out/style.css
-	tailwindcss -i input.css -o out/style.css
+compile:
+	go build
+
+build: compile
+	rm -rf dist
+
+	# Generate font files
+	./font.delivery --input-dir=fonts --output-dir=dist
+
+	# Generate a master css file containing all font css files
+	cat dist/*.css > dist/_.css
+
+	# Copy static files to dist/
+	cp -r static/* dist/
+
+	# Generate dist/style.css
+	tailwindcss -i input.css -o dist/style.css
 
 typecheck:
 	tsc -p jsconfig.json

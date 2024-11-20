@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -168,10 +169,10 @@ func getLicenseDirName(license string) string {
 	}
 }
 
-func generateCSSFiles(families []FontFamily) {
+func generateCSSFiles(families []FontFamily, outputDir string) {
 	for _, f := range families {
 		css := generateCSS(f, []string{"latin"})
-		err := os.WriteFile("out/"+f.Id+".css", []byte(css), 0o644)
+		err := os.WriteFile(filepath.Join(outputDir, f.Id+".css"), []byte(css), 0o644)
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
 			return
@@ -179,7 +180,7 @@ func generateCSSFiles(families []FontFamily) {
 	}
 }
 
-func generateWoff2Files(family FontFamily, fontPath string, subsets []string) error {
+func generateWoff2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
 	licenseDir := getLicenseDirName(family.License)
 	for _, font := range family.Fonts {
 		inputPath := fmt.Sprintf("%s/%s/%s/%s", fontPath, licenseDir, strings.ToLower(strings.ReplaceAll(family.Name, " ", "")), font.Filename)
@@ -190,7 +191,7 @@ func generateWoff2Files(family FontFamily, fontPath string, subsets []string) er
 			}
 			unicodeFilePath := "ranges/" + subset + ".txt"
 			tempSubsetPath := fmt.Sprintf("temp/%s_%s.subset.ttf", family.Id, subset)
-			outputPath := fmt.Sprintf("out/%s_%s_%s_%s.woff2", family.Id, subset, strings.Replace(getFontWeight(family, font), " ", "-", -1), font.Style)
+			outputPath := filepath.Join(outputDir, fmt.Sprintf("%s_%s_%s_%s.woff2", family.Id, subset, strings.Replace(getFontWeight(family, font), " ", "-", -1), font.Style))
 
 			cmdSubset := exec.Command("hb-subset", "--unicodes-file="+unicodeFilePath, "--output-file="+tempSubsetPath, inputPath)
 			if err := cmdSubset.Run(); err != nil {
@@ -210,7 +211,7 @@ func generateWoff2Files(family FontFamily, fontPath string, subsets []string) er
 	return nil
 }
 
-func writeAPIFiles(families []FontFamily, subsets []string) {
+func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) {
 	var apiData []map[string]string
 	for _, font := range families {
 		subsetsIntersect := false
@@ -231,7 +232,8 @@ func writeAPIFiles(families []FontFamily, subsets []string) {
 		})
 	}
 
-	err := os.MkdirAll("out/api/v1/", os.ModePerm)
+	apiDir := filepath.Join(outputDir, "api/v1/")
+	err := os.MkdirAll(apiDir, os.ModePerm)
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
 		return
@@ -243,17 +245,20 @@ func writeAPIFiles(families []FontFamily, subsets []string) {
 		return
 	}
 
-	err = os.WriteFile("out/api/v1/fonts.json", apiDataBytes, 0o644)
+	err = os.WriteFile(filepath.Join(apiDir, "fonts.json"), apiDataBytes, 0o644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 	}
 }
 
 func main() {
-	fontPath := "fonts"
+	fontPath := flag.String("input-dir", "fonts", "Input directory containing font files")
+	outputDir := flag.String("output-dir", "out", "Output directory for generated files")
+	flag.Parse()
+
 	subsets := []string{"latin"}
 
-	families, err := GatherMetadata(fontPath)
+	families, err := GatherMetadata(*fontPath)
 	if err != nil {
 		log.Fatalf("Failed to gather metadata: %v", err)
 	}
@@ -261,9 +266,9 @@ func main() {
 	os.MkdirAll("temp", os.ModePerm)
 	os.MkdirAll("out", os.ModePerm)
 
-	writeAPIFiles(families, subsets)
+	writeAPIFiles(families, subsets, *outputDir)
 
-	generateCSSFiles(families)
+	generateCSSFiles(families, *outputDir)
 
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
@@ -273,7 +278,7 @@ func main() {
 		semaphore <- struct{}{}
 		go func(f FontFamily) {
 			defer wg.Done()
-			if err := generateWoff2Files(f, fontPath, subsets); err != nil {
+			if err := generateWoff2Files(f, subsets, *fontPath, *outputDir); err != nil {
 				log.Println("Error generating WOFF2 files:", err)
 			}
 			<-semaphore
