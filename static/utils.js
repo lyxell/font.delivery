@@ -1,4 +1,6 @@
 /**
+ * Create a HTML element from a HTML template.
+ *
  * @param {HTMLTemplateElement | string} tmpl
  * @param {Record<string, (e: Element) => void>} record
  * @returns {DocumentFragment}
@@ -8,7 +10,7 @@ export function createElement(tmpl, record) {
     if (typeof tmpl === "string") {
       const res = document.querySelector(tmpl);
       if (!(res instanceof HTMLTemplateElement)) {
-        throw new Error("Query string did not return a HTMLTemplateElement");
+        throw new Error("Query selector did not return a HTMLTemplateElement");
       }
       return res;
     }
