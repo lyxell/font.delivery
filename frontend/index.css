@@ -13,6 +13,27 @@ body {
 	}
 }
 
+/**
+ * This rule sets the text color for .text-muted-foreground, it
+ * has the same value in light and dark mode
+ */
+
 .text-muted-foreground {
 	@apply text-neutral-500;
+}
+
+/**
+ * These rules apply a default border color on all elements that
+ * adapts to light/dark mode
+ */
+* {
+	@apply border-neutral-300;
+}
+.dark * {
+	@apply border-neutral-700;
+}
+@media (prefers-color-scheme: dark) {
+	* {
+		@apply border-neutral-700;
+	}
 }
