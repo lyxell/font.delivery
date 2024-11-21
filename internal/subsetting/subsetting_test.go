@@ -59,22 +59,22 @@ func TestBuildCSSString(t *testing.T) {
 	}
 }
 
-// func TestInvalidSubsetKey(t *testing.T) {
-// 	defer func() {
-// 		if r := recover(); r == nil {
-// 			t.Errorf("Expected panic for invalid subset key, but code did not panic")
-// 		}
-// 	}()
-//
-// 	subsetting.BuildHarfbuzzString("invalid-key")
-// }
-//
-// func TestInvalidSubsetKeyCSS(t *testing.T) {
-// 	defer func() {
-// 		if r := recover(); r == nil {
-// 			t.Errorf("Expected panic for invalid subset key, but code did not panic")
-// 		}
-// 	}()
-//
-// 	subsetting.BuildCSSString("invalid-key")
-// }
+func TestInvalidSubsetKey(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic for invalid subset key, but code did not panic")
+		}
+	}()
+
+	subsetting.BuildHarfbuzzString("invalid-key")
+}
+
+func TestInvalidSubsetKeyCSS(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic for invalid subset key, but code did not panic")
+		}
+	}()
+
+	subsetting.BuildCSSString("invalid-key")
+}
