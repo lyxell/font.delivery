@@ -13,6 +13,9 @@ build-fonts: compile
 
 build: build-fonts
 
+serve:
+	cd frontend && just serve
+
 test:
 	go test -coverprofile=coverage.out
 

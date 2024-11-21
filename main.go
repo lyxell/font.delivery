@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"cmp"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -262,6 +263,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to gather metadata: %v", err)
 	}
+	slices.SortFunc(families, func(a, b FontFamily) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 
 	os.MkdirAll("temp", os.ModePerm)
 	os.MkdirAll("out", os.ModePerm)
