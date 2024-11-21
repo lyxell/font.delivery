@@ -2,7 +2,7 @@ serve:
 	npx vite
 
 build:
-	npm install && tsc -b && npx vite build
+	npm install && npx tsc -b && npx vite build
 
 fmt:
 	npx prettier --no-config --use-tabs --cache -w .

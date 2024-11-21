@@ -2,19 +2,12 @@
 
 pkgs.mkShell {
   nativeBuildInputs = [
-	# Building
 	pkgs.go
+	pkgs.gofumpt
 	pkgs.gopls
 	pkgs.harfbuzz
 	pkgs.just
-	pkgs.tailwindcss
-	pkgs.woff2
 	pkgs.nodejs_22
-	# Development
-	pkgs.gofumpt
-	pkgs.miniserve
-	pkgs.nodePackages.prettier
-	pkgs.typescript
-	pkgs.typescript-language-server
+	pkgs.woff2
   ];
 }
