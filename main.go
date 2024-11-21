@@ -219,6 +219,7 @@ func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) er
 		for _, s := range subsets {
 			if slices.Contains(font.Subsets, s) {
 				subsetsIntersect = true
+				break
 			}
 		}
 		// Skip fonts that do not have any renderable subsets
