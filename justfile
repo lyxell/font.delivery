@@ -5,7 +5,7 @@ build: compile
 	rm -rf dist
 
 	# Generate font files
-	./font.delivery --input-dir=fonts --output-dir=dist
+	./fontdelivery --input-dir=fonts --output-dir=dist
 
 	# Generate a master css file containing all font css files
 	cat dist/*.css > dist/_.css
