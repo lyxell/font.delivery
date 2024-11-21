@@ -19,6 +19,9 @@ build: build-fonts build-web
 serve:
 	cd web && just serve
 
+serve-production:
+	miniserve --index index.html web/dist/
+
 test:
 	go test -coverprofile=coverage.out
 

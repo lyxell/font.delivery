@@ -135,14 +135,13 @@ func getFontWeight(fontData FontFamily, font Font) string {
 	return fmt.Sprintf("%d", font.Weight)
 }
 
-func generateCSS(fontData FontFamily, subsets []string) string {
+func generateCSS(fontData FontFamily, subsets []string) (string, error) {
 	var cssOutput string
 	for _, subset := range subsets {
 		unicodeRanges, err := readUnicodeRanges("ranges/" + subset + ".txt")
 		if err != nil {
-			log.Fatalf("Failed to read Unicode ranges: %v", err)
+			return "", err
 		}
-
 		for _, font := range fontData.Fonts {
 			fontWeight := getFontWeight(fontData, font)
 			cssOutput += fmt.Sprintf(`@font-face {
@@ -161,7 +160,7 @@ func generateCSS(fontData FontFamily, subsets []string) string {
   font-family: "%s";
 }
 `, fontData.Id, fontData.Name)
-	return cssOutput
+	return cssOutput, nil
 }
 
 func getLicenseDirName(license string) string {
@@ -173,15 +172,18 @@ func getLicenseDirName(license string) string {
 	}
 }
 
-func generateCSSFiles(families []FontFamily, subsets []string, outputDir string) {
+func generateCSSFiles(families []FontFamily, subsets []string, outputDir string) error {
 	for _, f := range families {
-		css := generateCSS(f, subsets)
-		err := os.WriteFile(filepath.Join(outputDir, f.Id+".css"), []byte(css), 0o644)
+		css, err := generateCSS(f, subsets)
 		if err != nil {
-			fmt.Println("Error writing to file:", err)
-			return
+			return err
+		}
+		err = os.WriteFile(filepath.Join(outputDir, f.Id+".css"), []byte(css), 0o644)
+		if err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func generateWoff2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
@@ -215,7 +217,7 @@ func generateWoff2Files(family FontFamily, subsets []string, fontPath string, ou
 	return nil
 }
 
-func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) error {
+func generateJSONFiles(families []FontFamily, subsets []string, outputDir string) error {
 	var apiData []map[string]string
 	for _, font := range families {
 		subsetsIntersect := false
@@ -273,12 +275,15 @@ func main() {
 	os.MkdirAll("temp", os.ModePerm)
 	os.MkdirAll("out", os.ModePerm)
 
-	err = writeAPIFiles(families, subsets, *outputDir)
+	err = generateJSONFiles(families, subsets, *outputDir)
 	if err != nil {
-		log.Fatalf("failed to write API files: %v", err)
+		log.Fatalf("failed to generate JSON files: %v", err)
 	}
 
-	generateCSSFiles(families, subsets, *outputDir)
+	err = generateCSSFiles(families, subsets, *outputDir)
+	if err != nil {
+		log.Fatalf("failed to generate CSS files: %v", err)
+	}
 
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
