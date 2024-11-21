@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -55,6 +56,8 @@ func ParseMetadataProtobuf(path string) (*FamilyProto, error) {
 
 // GatherMetadata walks through the directory and gathers metadata from all
 // METADATA.pb files it stumbles upon.
+//
+// The slice will be sorted by the name of the font family.
 func GatherMetadata(rootDir string) ([]FontFamily, error) {
 	var metadata []FontFamily
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
@@ -96,6 +99,9 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 			metadata = append(metadata, family)
 		}
 		return nil
+	})
+	slices.SortFunc(metadata, func(a, b FontFamily) int {
+		return cmp.Compare(a.Name, b.Name)
 	})
 	return metadata, err
 }

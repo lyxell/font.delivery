@@ -1,13 +1,11 @@
 package main
 
 import (
-	"cmp"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
-	"slices"
 	"sync"
 
 	"github.com/sfhorg/fontdelivery/internal/builder"
@@ -18,11 +16,6 @@ func run(fontPath, outputDir string, subsets []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to gather metadata: %w", err)
 	}
-
-	slices.SortFunc(families, func(a, b builder.FontFamily) int {
-		return cmp.Compare(a.Name, b.Name)
-	})
-
 	if err := os.MkdirAll("temp", os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
