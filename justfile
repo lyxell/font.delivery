@@ -1,13 +1,13 @@
-compile:
-	go build
+compile-builder:
+	go build ./cmd/builder
 
 build-web:
 	cd web && just build
 
-build-fonts: compile
+build-fonts: compile-builder
 	rm -rf dist
 	# Generate font files
-	./fontdelivery --input-dir=fonts --output-dir=dist
+	./builder --input-dir=fonts --output-dir=dist
 	# Generate a master css file containing all font css files
 	cat dist/*.css > dist/_.css
 	# Move files to web (assumes folder web/public/ exists)

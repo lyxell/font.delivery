@@ -10,7 +10,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/sfhorg/fontdelivery/builder"
+	"github.com/sfhorg/fontdelivery/internal/builder"
 )
 
 func run(fontPath, outputDir string, subsets []string) error {

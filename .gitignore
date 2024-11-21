@@ -1,7 +1,6 @@
-temp
-out
-coverage.out
-fonts
-font.delivery
-fontdelivery
-dist
+/temp
+/coverage.out
+/dist
+/web/dist
+/builder
+/fonts

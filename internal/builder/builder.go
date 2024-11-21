@@ -155,7 +155,6 @@ func GenerateCSSFiles(families []FontFamily, subsets []string, outputDir string)
 }
 
 func GenerateWoff2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
-
 	for _, subset := range subsets {
 		// We add the family.Id here to avoid race conditions where goroutines
 		// could overwrite the files of other goroutines
