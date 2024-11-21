@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-	font-family: Inter, "sans-serif";
-}
-
 @media (prefers-color-scheme: dark) {
 	body {
 		background: black;
@@ -27,7 +23,7 @@ body {
  * adapts to light/dark mode
  */
 * {
-	@apply border-neutral-300;
+	@apply border-neutral-200;
 }
 .dark * {
 	@apply border-neutral-700;

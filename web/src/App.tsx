@@ -85,7 +85,7 @@ const App = () => {
 	};
 
 	return (
-		<div className="container mx-auto h-screen flex flex-col px-6">
+		<div className="container mx-auto h-screen flex flex-col px-6 font-inter">
 			<div className="flex justify-between items-center py-4">
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
@@ -93,13 +93,15 @@ const App = () => {
 				<nav className="flex gap-6">
 					<input
 						id="previewTextInput"
-						className="border p-2 rounded-sm w-96 bg-transparent"
+						className="border p-2 rounded-md w-96 bg-transparent"
 						placeholder="Custom text"
 						value={previewText}
 						onChange={handlePreviewTextChange}
 					/>
 				</nav>
-				<div>{fonts.length} fonts available</div>
+				<div className="text-muted-foreground text-sm">
+					{fonts.length} fonts available
+				</div>
 			</div>
 			<div className="overflow-auto flex-grow">
 				<VirtualScroll
@@ -111,9 +113,9 @@ const App = () => {
 							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
 						>
 							<div className="flex justify-between">
-								<span>
+								<span style={{ fontSize: "16px", fontWeight: 600 }}>
 									{font.name}{" "}
-									<span className="text-muted-foreground">
+									<span className="text-muted-foreground font-libre-baskerville text-sm font-normal italic">
 										by {font.designer}
 									</span>
 								</span>
