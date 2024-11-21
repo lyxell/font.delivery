@@ -1,8 +1,8 @@
 compile:
 	go build
 
-build-frontend:
-	cd frontend && just build
+build-web:
+	cd web && just build
 
 build-fonts: compile
 	rm -rf dist
@@ -14,7 +14,7 @@ build-fonts: compile
 build: build-fonts
 
 serve:
-	cd frontend && just serve
+	cd web && just serve
 
 test:
 	go test -coverprofile=coverage.out
