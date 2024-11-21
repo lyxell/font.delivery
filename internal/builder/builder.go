@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
-type Font struct {
+type FontFamilyFont struct {
 	Name       string `json:"name"`
 	Style      string `json:"style"`
 	Weight     int    `json:"weight"`
@@ -23,22 +23,22 @@ type Font struct {
 	Copyright  string `json:"copyright"`
 }
 
-type Axis struct {
+type FontFamilyAxis struct {
 	Tag      string  `json:"tag"`
 	MinValue float32 `json:"min_value"`
 	MaxValue float32 `json:"max_value"`
 }
 
 type FontFamily struct {
-	Id       string   `json:"id"`
-	Name     string   `json:"name"`
-	Designer string   `json:"designer"`
-	License  string   `json:"license"`
-	Category []string `json:"category"`
-	Fonts    []Font   `json:"fonts"`
-	Subsets  []string `json:"subsets"`
-	Axes     []Axis   `json:"axes"`
-	Minisite string   `json:"minisite_url"`
+	Id       string           `json:"id"`
+	Name     string           `json:"name"`
+	Designer string           `json:"designer"`
+	License  string           `json:"license"`
+	Category []string         `json:"category"`
+	Fonts    []FontFamilyFont `json:"fonts"`
+	Subsets  []string         `json:"subsets"`
+	Axes     []FontFamilyAxis `json:"axes"`
+	Minisite string           `json:"minisite_url"`
 }
 
 // ParseMetadataProtobuf parses a METADATA.pb file.
@@ -79,7 +79,7 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 				Minisite: familyData.GetMinisiteUrl(),
 			}
 			for _, fontProto := range familyData.GetFonts() {
-				family.Fonts = append(family.Fonts, Font{
+				family.Fonts = append(family.Fonts, FontFamilyFont{
 					Name:       fontProto.GetName(),
 					Style:      fontProto.GetStyle(),
 					Weight:     int(fontProto.GetWeight()),
@@ -90,7 +90,7 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 				})
 			}
 			for _, axisProto := range familyData.GetAxes() {
-				family.Axes = append(family.Axes, Axis{
+				family.Axes = append(family.Axes, FontFamilyAxis{
 					Tag:      axisProto.GetTag(),
 					MinValue: axisProto.GetMinValue(),
 					MaxValue: axisProto.GetMaxValue(),
@@ -106,7 +106,7 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 	return metadata, err
 }
 
-func getFontWeight(fontData FontFamily, font Font) string {
+func getFontWeight(fontData FontFamily, font FontFamilyFont) string {
 	for _, axis := range fontData.Axes {
 		if axis.Tag == "wght" {
 			return fmt.Sprintf("%v %v", axis.MinValue, axis.MaxValue)
@@ -116,28 +116,44 @@ func getFontWeight(fontData FontFamily, font Font) string {
 }
 
 func generateCSS(fontData FontFamily, subsets []string) string {
-	var cssOutput string
+	var cssOutput strings.Builder
+
+	fontFaceTemplate := `@font-face {
+	font-family: "{family}";
+	font-style: {style};
+	font-weight: {weight};
+	font-display: swap;
+	src: url('{fileName}.woff2') format('woff2');
+	unicode-range: {ranges};
+}
+`
 	for _, subset := range subsets {
-		unicodeRanges := WriteCSSRangeString(subsetRanges[subset])
+		ranges := WriteCSSRangeString(subsetRanges[subset])
 		for _, font := range fontData.Fonts {
 			fontWeight := getFontWeight(fontData, font)
-			cssOutput += fmt.Sprintf(`@font-face {
-	font-family: "%s";
-	font-style: %s;
-	font-weight: %s;
-	font-display: swap;
-	src: url('%s_%s_%s_%s.woff2') format('woff2');
-	unicode-range: %s;
-}
-`, fontData.Name, font.Style, fontWeight, fontData.Id, subset, strings.Replace(fontWeight, " ", "-", 1), font.Style, unicodeRanges)
+			fileName := strings.Join([]string{
+				fontData.Id,
+				subset,
+				strings.Replace(fontWeight, " ", "-", 1),
+				font.Style,
+			}, "_")
+			replacer := strings.NewReplacer(
+				"{family}", fontData.Name,
+				"{style}", font.Style,
+				"{weight}", fontWeight,
+				"{fileName}", fileName,
+				"{ranges}", ranges,
+			)
+			cssOutput.WriteString(replacer.Replace(fontFaceTemplate))
 		}
 	}
 
-	cssOutput += fmt.Sprintf(`.font-%s {
+	cssOutput.WriteString(fmt.Sprintf(`.font-%s {
   font-family: "%s";
 }
-`, fontData.Id, fontData.Name)
-	return cssOutput
+`, fontData.Id, fontData.Name))
+
+	return cssOutput.String()
 }
 
 func getLicenseDirName(license string) string {
