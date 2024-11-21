@@ -1,6 +1,9 @@
 compile:
 	go build
 
+build-frontend:
+	cd frontend && just build
+
 build-fonts: compile
 	rm -rf dist
 	# Generate font files

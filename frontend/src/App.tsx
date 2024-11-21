@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import logo from "./logo.svg";
 
 interface Font {
 	name: string;
@@ -86,7 +87,9 @@ const App = () => {
 	return (
 		<div className="container mx-auto h-screen flex flex-col px-6">
 			<div className="flex justify-between items-center py-4">
-				<div className="text-2xl font-semibold pr-12">font.delivery</div>
+				<div className="text-2xl font-semibold pr-12">
+					<img src={logo} className="h-10" />
+				</div>
 				<nav className="flex gap-6">
 					<input
 						id="previewTextInput"
