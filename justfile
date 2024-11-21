@@ -11,10 +11,10 @@ build: compile
 	cat dist/*.css > dist/_.css
 
 	# Copy static files to dist/
-	cp -r static/* dist/
+	#cp -r static/* dist/
 
 	# Generate dist/style.css
-	tailwindcss -i input.css -o dist/style.css
+	#tailwindcss -i input.css -o dist/style.css
 
 typecheck:
 	tsc -p jsconfig.json

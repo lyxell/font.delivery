@@ -1,0 +1,5 @@
+serve:
+	npx vite
+
+build:
+	tsc -b && npx vite build
