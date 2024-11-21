@@ -42,6 +42,18 @@ type FontFamily struct {
 	Minisite string           `json:"minisite_url"`
 }
 
+// Take the intersection of two slices.
+// Assumes slices contain no duplicates.
+func intersection(slice1, slice2 []string) []string {
+	var result []string
+	for _, s := range slice1 {
+		if slices.Contains(slice2, s) {
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
 // parseMetadataProtobuf parses a METADATA.pb file into a FamilyProto struct.
 func parseMetadataProtobuf(path string) (*FamilyProto, error) {
 	data, err := os.ReadFile(path)
@@ -107,16 +119,23 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 	return metadata, err
 }
 
-func getFontWeight(fontData FontFamily, font FontFamilyFont) string {
+// Gets the font weight for a font.
+//
+// Returns e.g. []string{"100", "900"} for variable weights and []string{"400"}
+// for fixed weights.
+func getFontWeight(fontData FontFamily, font FontFamilyFont) []string {
 	for _, axis := range fontData.Axes {
 		if axis.Tag == "wght" {
-			return fmt.Sprintf("%v %v", axis.MinValue, axis.MaxValue)
+			return []string{
+				fmt.Sprintf("%v", axis.MinValue),
+				fmt.Sprintf("%v", axis.MaxValue),
+			}
 		}
 	}
-	return fmt.Sprintf("%d", font.Weight)
+	return []string{fmt.Sprintf("%d", font.Weight)}
 }
 
-func generateCSS(fontData FontFamily, subsets []string) string {
+func generateCSS(family FontFamily, subsets []string) string {
 	var cssOutput strings.Builder
 
 	fontFaceTemplate := `@font-face {
@@ -128,22 +147,21 @@ func generateCSS(fontData FontFamily, subsets []string) string {
 	unicode-range: {ranges};
 }
 `
-	for _, subset := range subsets {
-		ranges := subsetting.BuildCSSString(subset)
-		for _, font := range fontData.Fonts {
-			fontWeight := getFontWeight(fontData, font)
+	for _, subset := range intersection(subsets, family.Subsets) {
+		for _, font := range family.Fonts {
+			fontWeight := getFontWeight(family, font)
 			fileName := strings.Join([]string{
-				fontData.Id,
+				family.Id,
 				subset,
-				strings.Replace(fontWeight, " ", "-", 1),
+				strings.Join(fontWeight, "-"),
 				font.Style,
 			}, "_")
 			replacer := strings.NewReplacer(
-				"{family}", fontData.Name,
+				"{family}", family.Name,
 				"{style}", font.Style,
-				"{weight}", fontWeight,
+				"{weight}", strings.Join(fontWeight, " "),
 				"{fileName}", fileName,
-				"{ranges}", ranges,
+				"{ranges}", subsetting.BuildCSSString(subset),
 			)
 			cssOutput.WriteString(replacer.Replace(fontFaceTemplate))
 		}
@@ -152,7 +170,7 @@ func generateCSS(fontData FontFamily, subsets []string) string {
 	cssOutput.WriteString(fmt.Sprintf(`.font-%s {
   font-family: "%s";
 }
-`, fontData.Id, fontData.Name))
+`, family.Id, family.Name))
 
 	return cssOutput.String()
 }
@@ -177,19 +195,6 @@ func GenerateCSSFiles(families []FontFamily, subsets []string, outputDir string)
 	return nil
 }
 
-func writeHarfbuzzRangeFile(path string, subset string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	_, err = file.Write([]byte(subsetting.BuildHarfbuzzString(subset)))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
 	const tempPath = "temp"
 
@@ -197,7 +202,10 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 		// We add the family.Id here to avoid race conditions where goroutines
 		// could overwrite the files of other goroutines
 		unicodeRangesPath := filepath.Join(tempPath, fmt.Sprintf("range-%s-%s.txt", family.Id, subset))
-		writeHarfbuzzRangeFile(unicodeRangesPath, subset)
+		err := os.WriteFile(unicodeRangesPath, []byte(subsetting.BuildHarfbuzzString(subset)), 0o644)
+		if err != nil {
+			return err
+		}
 	}
 
 	licenseDir := getLicenseDirName(family.License)
@@ -210,10 +218,7 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 			font.Filename,
 		)
 		fmt.Println("Processing", inputPath)
-		for _, subset := range subsets {
-			if !slices.Contains(family.Subsets, subset) {
-				continue
-			}
+		for _, subset := range intersection(subsets, family.Subsets) {
 
 			// unicodeRangesPath is where harfbuzz reads the unicode ranges for subsetting from
 			unicodeRangesPath := filepath.Join(tempPath, fmt.Sprintf("range-%s-%s.txt", family.Id, subset))
@@ -222,7 +227,7 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 			tempSubsetPath := filepath.Join(tempPath, fmt.Sprintf("%s_%s.subset.ttf", family.Id, subset))
 
 			// outputPath is where the final .woff2-file will be written to
-			outputPath := filepath.Join(outputDir, fmt.Sprintf("%s_%s_%s_%s.woff2", family.Id, subset, strings.Replace(getFontWeight(family, font), " ", "-", -1), font.Style))
+			outputPath := filepath.Join(outputDir, fmt.Sprintf("%s_%s_%s_%s.woff2", family.Id, subset, strings.Join(getFontWeight(family, font), "-"), font.Style))
 
 			// Perform subsetting
 			cmdSubset := exec.Command("hb-subset", "--unicodes-file="+unicodeRangesPath, "--output-file="+tempSubsetPath, inputPath)
@@ -249,15 +254,8 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string) error {
 	var apiData []map[string]string
 	for _, font := range families {
-		subsetsIntersect := false
-		for _, s := range subsets {
-			if slices.Contains(font.Subsets, s) {
-				subsetsIntersect = true
-				break
-			}
-		}
 		// Skip fonts that do not have any renderable subsets
-		if !subsetsIntersect {
+		if len(intersection(subsets, font.Subsets)) == 0 {
 			continue
 		}
 		apiData = append(apiData, map[string]string{
