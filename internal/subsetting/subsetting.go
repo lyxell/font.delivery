@@ -1,16 +1,15 @@
-package builder
+package subsetting
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
-type UnicodeRange struct {
+type unicodeRange struct {
 	Start, End rune
 }
 
-var subsetRanges = map[string][]UnicodeRange{
+var subsetRanges = map[string][]unicodeRange{
 	"latin": {
 		{0x0000, 0x00FF},
 		{0x0131, 0x0131},
@@ -23,7 +22,6 @@ var subsetRanges = map[string][]UnicodeRange{
 		{0x0308, 0x0308},
 		{0x0329, 0x0329},
 		{0x2000, 0x206F},
-		{0x2074, 0x2074},
 		{0x20AC, 0x20AC},
 		{0x2122, 0x2122},
 		{0x2191, 0x2191},
@@ -69,34 +67,36 @@ var subsetRanges = map[string][]UnicodeRange{
 	},
 }
 
-// Takes a slice of Unicode ranges and writes a file on this format:
-// 0000-00FF
-// 0131
-// 0152-0153
-// ...
-func WriteHarfbuzzFile(fileName string, unicodeRanges []UnicodeRange) error {
-	file, err := os.Create(fileName)
-	if err != nil {
-		return err
+// Takes a subset and returns a string in HarfBuzz format:
+//
+//	0000-00FF
+//	0131
+//	0152-0153
+//	...
+func BuildHarfbuzzString(subset string) string {
+	unicodeRanges, found := subsetRanges[subset]
+	if !found {
+		panic(fmt.Errorf("invalid subset key: %s", subset))
 	}
-	defer file.Close()
+	var result strings.Builder
 	for _, r := range unicodeRanges {
-		var line string
 		if r.Start == r.End {
-			line = fmt.Sprintf("%04X\n", r.Start)
+			result.WriteString(fmt.Sprintf("%04X\n", r.Start))
 		} else {
-			line = fmt.Sprintf("%04X-%04X\n", r.Start, r.End)
-		}
-		if _, err := file.WriteString(line); err != nil {
-			return err
+			result.WriteString(fmt.Sprintf("%04X-%04X\n", r.Start, r.End))
 		}
 	}
-	return nil
+	return result.String()
 }
 
-// Takes a slice of Unicode ranges and creates a string on CSS format:
-// "U+0000-00FF, U+0131, U+0152-0153, [...]"
-func WriteCSSRangeString(unicodeRanges []UnicodeRange) string {
+// Takes a subset and creates a string in CSS format:
+//
+//	"U+0000-00FF, U+0131, U+0152-0153, ..."
+func BuildCSSString(subset string) string {
+	unicodeRanges, found := subsetRanges[subset]
+	if !found {
+		panic(fmt.Errorf("invalid subset key: %s", subset))
+	}
 	var cssRanges []string
 	for _, r := range unicodeRanges {
 		if r.Start == r.End {

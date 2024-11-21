@@ -3,6 +3,8 @@ package builder
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateCSSInter(t *testing.T) {
@@ -55,9 +57,8 @@ func TestGenerateCSSInter(t *testing.T) {
 
 	var testData FontFamily
 
-	if err := json.Unmarshal([]byte(testJSON), &testData); err != nil {
-		t.Fatalf("Failed to unmarshal JSON data: %v", err)
-	}
+	err := json.Unmarshal([]byte(testJSON), &testData)
+	assert.Nil(t, err)
 
 	generatedCSS := generateCSS(testData, []string{"latin"})
 
@@ -67,16 +68,13 @@ func TestGenerateCSSInter(t *testing.T) {
 	font-weight: 100 900;
 	font-display: swap;
 	src: url('inter_latin_100-900_normal.woff2') format('woff2');
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 .font-inter {
   font-family: "Inter";
 }
 `
-
-	if generatedCSS != expectedCSS {
-		t.Errorf("Generated CSS does not match expected CSS.\nExpected:\n%s\nGot:\n%s", expectedCSS, generatedCSS)
-	}
+	assert.Equal(t, expectedCSS, generatedCSS)
 }
 
 func TestGenerateCSSJetBrainsMono(t *testing.T) {
@@ -141,7 +139,7 @@ func TestGenerateCSSJetBrainsMono(t *testing.T) {
 	font-weight: 100 800;
 	font-display: swap;
 	src: url('jetbrains-mono_latin_100-800_normal.woff2') format('woff2');
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
 	font-family: "JetBrains Mono";
@@ -149,16 +147,13 @@ func TestGenerateCSSJetBrainsMono(t *testing.T) {
 	font-weight: 100 800;
 	font-display: swap;
 	src: url('jetbrains-mono_latin_100-800_italic.woff2') format('woff2');
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 .font-jetbrains-mono {
   font-family: "JetBrains Mono";
 }
 `
-
-	if generatedCSS != expectedCSS {
-		t.Errorf("Generated CSS does not match expected CSS.\nExpected:\n%s\nGot:\n%s", expectedCSS, generatedCSS)
-	}
+	assert.Equal(t, expectedCSS, generatedCSS)
 }
 
 func TestGenerateCSSJoan(t *testing.T) {
@@ -217,7 +212,7 @@ func TestGenerateCSSJoan(t *testing.T) {
 	font-weight: 400;
 	font-display: swap;
 	src: url('joan_latin_400_normal.woff2') format('woff2');
-	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 .font-joan {
   font-family: "Joan";
@@ -226,7 +221,5 @@ func TestGenerateCSSJoan(t *testing.T) {
 
 	generatedCSS := generateCSS(testData, []string{"latin"})
 
-	if generatedCSS != expectedCSS {
-		t.Errorf("Generated CSS does not match expected CSS.\nExpected:\n%s\nGot:\n%s", expectedCSS, generatedCSS)
-	}
+	assert.Equal(t, expectedCSS, generatedCSS)
 }

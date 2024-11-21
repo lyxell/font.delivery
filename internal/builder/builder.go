@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/sfhorg/fontdelivery/internal/subsetting"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
@@ -41,8 +42,8 @@ type FontFamily struct {
 	Minisite string           `json:"minisite_url"`
 }
 
-// ParseMetadataProtobuf parses a METADATA.pb file into a FamilyProto struct.
-func ParseMetadataProtobuf(path string) (*FamilyProto, error) {
+// parseMetadataProtobuf parses a METADATA.pb file into a FamilyProto struct.
+func parseMetadataProtobuf(path string) (*FamilyProto, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 			return err
 		}
 		if info.Name() == "METADATA.pb" {
-			familyData, err := ParseMetadataProtobuf(path)
+			familyData, err := parseMetadataProtobuf(path)
 			if err != nil {
 				return err
 			}
@@ -128,7 +129,7 @@ func generateCSS(fontData FontFamily, subsets []string) string {
 }
 `
 	for _, subset := range subsets {
-		ranges := WriteCSSRangeString(subsetRanges[subset])
+		ranges := subsetting.BuildCSSString(subset)
 		for _, font := range fontData.Fonts {
 			fontWeight := getFontWeight(fontData, font)
 			fileName := strings.Join([]string{
@@ -176,17 +177,27 @@ func GenerateCSSFiles(families []FontFamily, subsets []string, outputDir string)
 	return nil
 }
 
+func writeHarfbuzzRangeFile(path string, subset string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write([]byte(subsetting.BuildHarfbuzzString(subset)))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
 	const tempPath = "temp"
 
 	for _, subset := range subsets {
-		unicodeRangesPath := filepath.Join(tempPath, fmt.Sprintf("range-%s-%s.txt", family.Id, subset))
 		// We add the family.Id here to avoid race conditions where goroutines
 		// could overwrite the files of other goroutines
-		err := WriteHarfbuzzFile(unicodeRangesPath, subsetRanges[subset])
-		if err != nil {
-			return err
-		}
+		unicodeRangesPath := filepath.Join(tempPath, fmt.Sprintf("range-%s-%s.txt", family.Id, subset))
+		writeHarfbuzzRangeFile(unicodeRangesPath, subset)
 	}
 
 	licenseDir := getLicenseDirName(family.License)
