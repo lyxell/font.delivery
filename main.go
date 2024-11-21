@@ -253,6 +253,50 @@ func generateJSONFiles(families []FontFamily, subsets []string, outputDir string
 	return os.WriteFile(filepath.Join(apiDir, "fonts.json"), apiDataBytes, 0o644)
 }
 
+func run(fontPath, outputDir string, subsets []string) error {
+	families, err := GatherMetadata(fontPath)
+	if err != nil {
+		return fmt.Errorf("failed to gather metadata: %w", err)
+	}
+
+	slices.SortFunc(families, func(a, b FontFamily) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
+
+	if err := os.MkdirAll("temp", os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create temp directory: %w", err)
+	}
+	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	if err := generateJSONFiles(families, subsets, outputDir); err != nil {
+		return fmt.Errorf("failed to generate JSON files: %w", err)
+	}
+
+	if err := generateCSSFiles(families, subsets, outputDir); err != nil {
+		return fmt.Errorf("failed to generate CSS files: %w", err)
+	}
+
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
+
+	for _, family := range families {
+		wg.Add(1)
+		semaphore <- struct{}{}
+		go func(f FontFamily) {
+			defer wg.Done()
+			if err := generateWoff2Files(f, subsets, fontPath, outputDir); err != nil {
+				log.Println("Error generating WOFF2 files:", err)
+			}
+			<-semaphore
+		}(family)
+	}
+	wg.Wait()
+
+	return nil
+}
+
 func main() {
 	fontPath := flag.String("input-dir", "fonts", "Input directory containing font files")
 	outputDir := flag.String("output-dir", "out", "Output directory for generated files")
@@ -264,40 +308,7 @@ func main() {
 		"vietnamese",
 	}
 
-	families, err := GatherMetadata(*fontPath)
-	if err != nil {
-		log.Fatalf("failed to gather metadata: %v", err)
+	if err := run(*fontPath, *outputDir, subsets); err != nil {
+		log.Fatalf("error: %v", err)
 	}
-	slices.SortFunc(families, func(a, b FontFamily) int {
-		return cmp.Compare(a.Name, b.Name)
-	})
-
-	os.MkdirAll("temp", os.ModePerm)
-	os.MkdirAll("out", os.ModePerm)
-
-	err = generateJSONFiles(families, subsets, *outputDir)
-	if err != nil {
-		log.Fatalf("failed to generate JSON files: %v", err)
-	}
-
-	err = generateCSSFiles(families, subsets, *outputDir)
-	if err != nil {
-		log.Fatalf("failed to generate CSS files: %v", err)
-	}
-
-	var wg sync.WaitGroup
-	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
-
-	for _, family := range families {
-		wg.Add(1)
-		semaphore <- struct{}{}
-		go func(f FontFamily) {
-			defer wg.Done()
-			if err := generateWoff2Files(f, subsets, *fontPath, *outputDir); err != nil {
-				log.Println("Error generating WOFF2 files:", err)
-			}
-			<-semaphore
-		}(family)
-	}
-	wg.Wait()
 }
