@@ -212,7 +212,7 @@ func generateWoff2Files(family FontFamily, subsets []string, fontPath string, ou
 	return nil
 }
 
-func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) {
+func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) error {
 	var apiData []map[string]string
 	for _, font := range families {
 		subsetsIntersect := false
@@ -236,20 +236,15 @@ func writeAPIFiles(families []FontFamily, subsets []string, outputDir string) {
 	apiDir := filepath.Join(outputDir, "api/v1/")
 	err := os.MkdirAll(apiDir, os.ModePerm)
 	if err != nil {
-		fmt.Println("Error creating directory:", err)
-		return
+		return err
 	}
 
 	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
+		return err
 	}
 
-	err = os.WriteFile(filepath.Join(apiDir, "fonts.json"), apiDataBytes, 0o644)
-	if err != nil {
-		fmt.Println("Error writing file:", err)
-	}
+	return os.WriteFile(filepath.Join(apiDir, "fonts.json"), apiDataBytes, 0o644)
 }
 
 func main() {
@@ -261,7 +256,7 @@ func main() {
 
 	families, err := GatherMetadata(*fontPath)
 	if err != nil {
-		log.Fatalf("Failed to gather metadata: %v", err)
+		log.Fatalf("failed to gather metadata: %v", err)
 	}
 	slices.SortFunc(families, func(a, b FontFamily) int {
 		return cmp.Compare(a.Name, b.Name)
@@ -270,7 +265,10 @@ func main() {
 	os.MkdirAll("temp", os.ModePerm)
 	os.MkdirAll("out", os.ModePerm)
 
-	writeAPIFiles(families, subsets, *outputDir)
+	err = writeAPIFiles(families, subsets, *outputDir)
+	if err != nil {
+		log.Fatalf("failed to write API files: %v", err)
+	}
 
 	generateCSSFiles(families, *outputDir)
 
