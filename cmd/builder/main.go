@@ -39,7 +39,7 @@ func run(fontPath, outputDir string, subsets []string) error {
 		semaphore <- struct{}{}
 		go func(f builder.FontFamily) {
 			defer wg.Done()
-			if err := builder.GenerateWoff2Files(f, subsets, fontPath, outputDir); err != nil {
+			if err := builder.GenerateWOFF2Files(f, subsets, fontPath, outputDir); err != nil {
 				log.Println("Error generating WOFF2 files:", err)
 			}
 			<-semaphore
