@@ -183,11 +183,6 @@ func generateCSS(family FontFamily, subsets []string) string {
 		}
 	}
 
-	cssOutput.WriteString(fmt.Sprintf(`.font-%s {
-  font-family: "%s";
-}
-`, family.Id, family.Name))
-
 	return cssOutput.String()
 }
 
