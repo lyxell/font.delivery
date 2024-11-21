@@ -9,7 +9,7 @@ pkgs.mkShell {
 	pkgs.just
 	pkgs.tailwindcss
 	pkgs.woff2
-	pkgs.npm
+	pkgs.nodejs_22
 	# Development
 	pkgs.gofumpt
 	pkgs.miniserve
