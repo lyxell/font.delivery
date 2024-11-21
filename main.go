@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"cmp"
 	"encoding/json"
 	"flag"
@@ -106,21 +105,25 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 	return metadata, err
 }
 
+// Takes a file formatted like this:
+//
+// 0000-00FF
+// 0131
+// 0152-0153
+// [...]
+//
+// and returns a string on this format:
+// "U+0000-00FF, U+0131, U+0152-0153, [...]"
 func readUnicodeRanges(filePath string) (string, error) {
-	file, err := os.Open(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
-	var ranges []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		ranges = append(ranges, "U+"+scanner.Text())
+	result := []string{}
+	for _, line := range strings.Fields(string(data)) {
+		result = append(result, "U+"+line)
 	}
-	if err := scanner.Err(); err != nil {
-		return "", err
-	}
-	return strings.Join(ranges, ", "), nil
+	return strings.Join(result, ", "), nil
 }
 
 func getFontWeight(fontData FontFamily, font Font) string {
