@@ -102,9 +102,9 @@ const App = () => {
 				<VirtualScroll
 					items={fonts}
 					itemHeight={180}
-					renderItem={(font, i) => (
+					renderItem={(font) => (
 						<div
-							key={i}
+							key={font.id}
 							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
 						>
 							<div className="flex justify-between">
