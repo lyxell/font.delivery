@@ -1,3 +1,4 @@
 <img src=".github/cover.png">
 
-# font.delivery
+An open-source webfont delivery service that makes it easy to download and
+self-host webfonts.
