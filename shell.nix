@@ -9,5 +9,6 @@ pkgs.mkShell {
 	pkgs.just
 	pkgs.nodejs_22
 	pkgs.woff2
+	pkgs.nodePackages.typescript-language-server
   ];
 }

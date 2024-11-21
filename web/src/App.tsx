@@ -115,7 +115,7 @@ const App = () => {
 							<div className="flex justify-between">
 								<span style={{ fontSize: "16px", fontWeight: 600 }}>
 									{font.name}{" "}
-									<span className="text-muted-foreground text-sm font-normal italic" style={{fontFamily: `'Libre Baskerville', Tofu`}}>
+									<span className="text-muted-foreground text-sm font-normal italic" style={{fontFamily: `'Vollkorn', Tofu`}}>
 										by {font.designer}
 									</span>
 								</span>

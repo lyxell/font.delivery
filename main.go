@@ -173,9 +173,9 @@ func getLicenseDirName(license string) string {
 	}
 }
 
-func generateCSSFiles(families []FontFamily, outputDir string) {
+func generateCSSFiles(families []FontFamily, subsets []string, outputDir string) {
 	for _, f := range families {
-		css := generateCSS(f, []string{"latin"})
+		css := generateCSS(f, subsets)
 		err := os.WriteFile(filepath.Join(outputDir, f.Id+".css"), []byte(css), 0o644)
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
@@ -256,7 +256,11 @@ func main() {
 	outputDir := flag.String("output-dir", "out", "Output directory for generated files")
 	flag.Parse()
 
-	subsets := []string{"latin"}
+	subsets := []string{
+		"latin",
+		"latin-ext",
+		"vietnamese",
+	}
 
 	families, err := GatherMetadata(*fontPath)
 	if err != nil {
@@ -274,7 +278,7 @@ func main() {
 		log.Fatalf("failed to write API files: %v", err)
 	}
 
-	generateCSSFiles(families, *outputDir)
+	generateCSSFiles(families, subsets, *outputDir)
 
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
