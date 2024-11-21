@@ -41,23 +41,23 @@ type FontFamily struct {
 	Minisite string           `json:"minisite_url"`
 }
 
-// ParseMetadataProtobuf parses a METADATA.pb file.
+// ParseMetadataProtobuf parses a METADATA.pb file into a FamilyProto struct.
 func ParseMetadataProtobuf(path string) (*FamilyProto, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	protoInstance := &FamilyProto{}
-	if err := prototext.Unmarshal(data, protoInstance); err != nil {
+	var protoInstance FamilyProto
+	if err := prototext.Unmarshal(data, &protoInstance); err != nil {
 		return nil, err
 	}
-	return protoInstance, nil
+	return &protoInstance, nil
 }
 
-// GatherMetadata walks through the directory and gathers metadata from all
-// METADATA.pb files it stumbles upon.
+// GatherMetadata walks through the supplied directory and gathers metadata
+// from all METADATA.pb files it stumbles upon.
 //
-// The slice will be sorted by the name of the font family.
+// The slice of metadata will be sorted by the name of the font family.
 func GatherMetadata(rootDir string) ([]FontFamily, error) {
 	var metadata []FontFamily
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
