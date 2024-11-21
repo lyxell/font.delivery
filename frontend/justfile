@@ -1,0 +1,8 @@
+serve:
+	npx vite
+
+build:
+	tsc -b && npx vite build
+
+fmt:
+	bunx prettier --no-config --use-tabs --cache -w .
