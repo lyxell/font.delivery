@@ -23,7 +23,7 @@ serve-production:
 	miniserve --index index.html web/dist/
 
 test:
-	go test -coverprofile=coverage.out
+	go test -coverprofile=coverage.out ./...
 
 fmt:
 	gofumpt -w .

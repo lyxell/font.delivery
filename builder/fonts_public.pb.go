@@ -10,7 +10,7 @@
 //*
 // Open Source'd font metadata proto formats.
 
-package main
+package builder
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

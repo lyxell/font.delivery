@@ -1,4 +1,4 @@
-package main
+package builder
 
 import (
 	"encoding/json"
@@ -59,10 +59,7 @@ func TestGenerateCSSInter(t *testing.T) {
 		t.Fatalf("Failed to unmarshal JSON data: %v", err)
 	}
 
-	generatedCSS, err := generateCSS(testData, []string{"latin"})
-	if err != nil {
-		t.Fatalf("Expected err to be nil: %v", err)
-	}
+	generatedCSS := generateCSS(testData, []string{"latin"})
 
 	expectedCSS := `@font-face {
 	font-family: "Inter";
@@ -136,10 +133,7 @@ func TestGenerateCSSJetBrainsMono(t *testing.T) {
 		t.Fatalf("Failed to unmarshal JSON data: %v", err)
 	}
 
-	generatedCSS, err := generateCSS(testData, []string{"latin"})
-	if err != nil {
-		t.Fatalf("Expected err to be nil: %v", err)
-	}
+	generatedCSS := generateCSS(testData, []string{"latin"})
 
 	expectedCSS := `@font-face {
 	font-family: "JetBrains Mono";
@@ -230,10 +224,7 @@ func TestGenerateCSSJoan(t *testing.T) {
 }
 `
 
-	generatedCSS, err := generateCSS(testData, []string{"latin"})
-	if err != nil {
-		t.Fatalf("Expected err to be nil: %v", err)
-	}
+	generatedCSS := generateCSS(testData, []string{"latin"})
 
 	if generatedCSS != expectedCSS {
 		t.Errorf("Generated CSS does not match expected CSS.\nExpected:\n%s\nGot:\n%s", expectedCSS, generatedCSS)
