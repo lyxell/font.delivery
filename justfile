@@ -10,8 +10,11 @@ build-fonts: compile
 	./fontdelivery --input-dir=fonts --output-dir=dist
 	# Generate a master css file containing all font css files
 	cat dist/*.css > dist/_.css
+	# Move files to web (assumes folder web/public/ exists)
+	rm -rf web/public/*
+	cp -r dist/* web/public/
 
-build: build-fonts
+build: build-fonts build-web
 
 serve:
 	cd web && just serve
