@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "./logo.svg";
+import { Logo } from "./Logo";
 
 interface Font {
 	name: string;
@@ -88,7 +88,7 @@ const App = () => {
 		<div className="container mx-auto h-screen flex flex-col px-6">
 			<div className="flex justify-between items-center py-4">
 				<div className="text-2xl font-semibold pr-12">
-					<img src={logo} className="h-10" />
+					<Logo />
 				</div>
 				<nav className="flex gap-6">
 					<input
@@ -111,7 +111,12 @@ const App = () => {
 							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
 						>
 							<div className="flex justify-between">
-								<span>{`${font.name} by ${font.designer}`}</span>
+								<span>
+									{font.name}{" "}
+									<span className="text-muted-foreground">
+										by {font.designer}
+									</span>
+								</span>
 							</div>
 							<div className={`text-7xl whitespace-nowrap font-${font.id}`}>
 								{previewText.trim() ||

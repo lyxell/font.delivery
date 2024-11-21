@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+	font-family: Inter, "sans-serif";
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		background: black;
+		color: white;
+	}
+}
+
+.text-muted-foreground {
+	@apply text-neutral-500;
+}
