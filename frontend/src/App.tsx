@@ -6,17 +6,17 @@ interface Font {
 	id: string;
 }
 
-interface VirtualScrollProps<T> {
-	items: T[];
+interface VirtualScrollProps {
+	items: Font[];
 	itemHeight: number;
-	renderItem: (item: T, index: number) => React.ReactNode;
+	renderItem: (item: Font, index: number) => React.ReactNode;
 }
 
-const VirtualScroll = <T,>({
+const VirtualScroll = ({
 	items,
 	itemHeight,
 	renderItem,
-}: VirtualScrollProps<T>) => {
+}: VirtualScrollProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [offset, setOffset] = useState(0);
 
@@ -51,9 +51,9 @@ const VirtualScroll = <T,>({
 					height: `${items.length * itemHeight}px`,
 				}}
 			>
-				{items.slice(startIndex, endIndex).map((item, i) => (
+				{items.slice(startIndex, endIndex).map((font, i) => (
 					<div
-						key={i + startIndex}
+						key={font.id}
 						style={{
 							position: "absolute",
 							top: `${(i + startIndex) * itemHeight}px`,
@@ -61,7 +61,7 @@ const VirtualScroll = <T,>({
 							width: "100%",
 						}}
 					>
-						{renderItem(item, i + startIndex)}
+						{renderItem(font, i + startIndex)}
 					</div>
 				))}
 			</div>
