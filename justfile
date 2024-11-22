@@ -10,6 +10,8 @@ build-fonts: compile-builder
 	./builder --input-dir=fonts --output-dir=dist
 	# Generate a master css file containing all font css files
 	cat dist/*.css > dist/_.css
+	# Build API docs
+	redocly build-docs --output=dist/reference/index.html api.yml
 	# Move files to web (assumes folder web/public/ exists)
 	rm -rf web/public/*
 	cp -r dist/* web/public/

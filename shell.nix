@@ -11,5 +11,6 @@ pkgs.mkShell {
 	pkgs.nodePackages.typescript-language-server
 	pkgs.nodejs_22
 	pkgs.woff2
+	pkgs.redocly
   ];
 }

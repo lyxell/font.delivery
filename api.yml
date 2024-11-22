@@ -1,0 +1,25 @@
+openapi: 3.0.0
+info:
+  title: font.delivery REST API
+  version: 1.0.0
+  description: A sample API documentation
+servers:
+  - url: https://font.delivery/api/v1
+paths:
+  /fonts.json:
+    get:
+      summary: Get a list of all fonts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
