@@ -84,6 +84,7 @@ paths:
           description: Font family not found
   /download/{id}_{subset}_{weight}_{style}.woff2:
     get:
+      operationId: downloadFont
       summary: Download a font
       parameters:
         - name: id
