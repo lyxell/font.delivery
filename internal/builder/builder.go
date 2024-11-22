@@ -197,6 +197,11 @@ func GenerateCSSFiles(families []FontFamily, subsets []string, outputDir string)
 
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, outputDir string) error {
 	const tempPath = "temp"
+	apiDir := filepath.Join(outputDir, "api", "v1")
+	err := os.MkdirAll(filepath.Join(apiDir, "download"), os.ModePerm)
+	if err != nil {
+		return err
+	}
 
 	for _, subset := range subsets {
 		// We add the family.Id here to avoid race conditions where goroutines
@@ -226,9 +231,6 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 			// tempSubsetPath is where the intermediary subsetted .ttf-file will be written to
 			tempSubsetPath := filepath.Join(tempPath, fmt.Sprintf("%s_%s.subset.ttf", family.Id, subset))
 
-			// outputPath is where the final .woff2-file will be written to
-			outputPath := filepath.Join(outputDir, fmt.Sprintf("%s_%s_%s_%s.woff2", family.Id, subset, strings.Join(getFontWeight(family, font), "-"), font.Style))
-
 			// Perform subsetting
 			cmdSubset := exec.Command("hb-subset", "--unicodes-file="+unicodeRangesPath, "--output-file="+tempSubsetPath, inputPath)
 			if err := cmdSubset.Run(); err != nil {
@@ -243,6 +245,8 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 
 			// Move file to final destination
 			tempWoff2Path := strings.TrimSuffix(tempSubsetPath, ".ttf") + ".woff2"
+			// outputPath is where the final .woff2-file will be written to
+			outputPath := filepath.Join(apiDir, "download", fmt.Sprintf("%s_%s_%s_%s.woff2", family.Id, subset, strings.Join(getFontWeight(family, font), "-"), font.Style))
 			if err := os.Rename(tempWoff2Path, outputPath); err != nil {
 				return fmt.Errorf("error moving WOFF2 file to output directory for font %s, subset %s: %w", font.Name, subset, err)
 			}
