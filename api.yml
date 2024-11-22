@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: font.delivery REST API
-  version: 1.1.0
+  version: 1.2.0
   description: A sample API documentation
 servers:
   - url: https://font.delivery/api/v1
@@ -49,5 +49,14 @@ paths:
                   id:
                     type: string
                     description: Unique identifier for the font
+                  subsets:
+                    type: array
+                    description: Available subsets for the font
+                    items:
+                      type: string
+                      enum:
+                        - latin
+                        - latin-ext
+                        - vietnamese
         '404':
           description: Font not found

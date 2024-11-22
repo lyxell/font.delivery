@@ -272,9 +272,11 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 		})
 
 		fontData := struct {
-			ID string `json:"id"`
+			ID      string   `json:"id"`
+			Subsets []string `json:"subsets"`
 		}{
-			ID: font.Id,
+			ID:      font.Id,
+			Subsets: intersection(subsets, font.Subsets),
 		}
 		fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
 		if err != nil {
