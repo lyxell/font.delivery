@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/charmbracelet/huh"
 	"github.com/sfhorg/fontdelivery/internal/api"
@@ -56,6 +57,12 @@ func main() {
 	}
 	var selectedStyle string
 
+	var weightOptions []huh.Option[string]
+	for _, weight := range fontDetails.JSON200.Weights {
+		weightOptions = append(weightOptions, huh.NewOption(weight, weight))
+	}
+	var selectedWeight string
+
 	err = huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -68,13 +75,37 @@ func main() {
 				Options(styleOptions...).
 				Value(&selectedStyle).
 				Height(5),
+			huh.NewSelect[string]().
+				Title("Select a weight").
+				Options(weightOptions...).
+				Value(&selectedWeight).
+				Height(5),
 		),
 	).WithTheme(huh.ThemeBase()).Run()
 	if err != nil {
 		log.Fatalf("Error in form: %v", err)
 	}
 
-	fmt.Printf("Selected Font: %s\n", selectedFont.Name)
-	fmt.Printf("Selected Subset: %s\n", selectedSubset)
-	fmt.Printf("Selected Style: %s\n", selectedStyle)
+	response, err := client.DownloadFontWithResponse(
+		context.Background(),
+		selectedFont.Id,
+		api.DownloadFontParamsSubset(selectedSubset),
+		selectedWeight,
+		api.DownloadFontParamsStyle(selectedStyle),
+	)
+	if err != nil {
+		log.Fatalf("Error downloading font: %v", err)
+	}
+
+	if response.StatusCode() != 200 {
+		log.Fatalf("Failed to download font, HTTP status: %d", response.StatusCode())
+	}
+
+	fontFileName := fmt.Sprintf("%s_%s_%s_%s.woff2", selectedFont.Id, selectedSubset, selectedWeight, selectedStyle)
+	err = os.WriteFile(fontFileName, response.Body, 0o644)
+	if err != nil {
+		log.Fatalf("Error creating font file: %v", err)
+	}
+
+	fmt.Printf("Font downloaded and saved as %s\n", fontFileName)
 }
