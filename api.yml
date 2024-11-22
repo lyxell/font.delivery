@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 1.5.0
+  version: 1.6.0
   description: The REST API for font.delivery
   license:
     name: MIT
@@ -71,6 +71,12 @@ paths:
                         - latin
                         - latin-ext
                         - vietnamese
+                  weights:
+                    type: array
+                    description: Available font weights for the font family
+                    example: ["300", "400", "500"]
+                    items:
+                      type: string
                   styles:
                     type: array
                     description: Available styles for the font family
