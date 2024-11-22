@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/sfhorg/fontdelivery/internal/builder"
+	"github.com/sfhorg/font.delivery/internal/builder"
 )
 
 func run(fontPath, outputDir string, subsets []string) error {

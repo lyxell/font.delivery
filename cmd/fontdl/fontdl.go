@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/huh"
-	"github.com/sfhorg/fontdelivery/internal/api"
+	"github.com/sfhorg/font.delivery/internal/api"
 )
 
 func main() {

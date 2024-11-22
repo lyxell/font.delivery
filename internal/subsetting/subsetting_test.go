@@ -3,7 +3,7 @@ package subsetting_test
 import (
 	"testing"
 
-	"github.com/sfhorg/fontdelivery/internal/subsetting"
+	"github.com/sfhorg/font.delivery/internal/subsetting"
 	"github.com/stretchr/testify/assert"
 )
 

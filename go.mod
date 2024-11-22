@@ -1,4 +1,4 @@
-module github.com/sfhorg/fontdelivery
+module github.com/sfhorg/font.delivery
 
 go 1.23.3
 

@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sfhorg/fontdelivery/internal/subsetting"
+	"github.com/sfhorg/font.delivery/internal/subsetting"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
