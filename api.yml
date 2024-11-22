@@ -8,7 +8,7 @@ servers:
 paths:
   /fonts.json:
     get:
-      summary: Get a list of all fonts
+      summary: Get a list of all font families
       responses:
         '200':
           description: Successful response
@@ -21,24 +21,24 @@ paths:
                   properties:
                     id:
                       type: string
-                      description: Unique identifier for the font
+                      description: Unique identifier for the font family
                       example: archivo-narrow
                     name:
                       type: string
-                      description: Name of the font
+                      description: Name of the font family
                       example: "Archivo Narrow"
                     designer:
                       type: string
-                      description: Name(s) of the font designer(s)
+                      description: Name(s) of the designer(s)
                       example: "Omnibus-Type"
   /fonts/{id}.json:
     get:
-      summary: Get details for a specific font
+      summary: Get details for a specific font family
       parameters:
         - name: id
           in: path
           required: true
-          description: The ID of the font to retrieve
+          description: The ID of the font family to retrieve
           schema:
             type: string
       responses:
@@ -51,11 +51,11 @@ paths:
                 properties:
                   id:
                     type: string
-                    description: Unique identifier for the font
+                    description: Unique identifier for the font family
                     example: "archivo-narrow"
                   subsets:
                     type: array
-                    description: Available subsets for the font
+                    description: Available subsets for the font family
                     example: ["latin", "latin-ext", "vietnamese"]
                     items:
                       type: string
@@ -64,4 +64,4 @@ paths:
                         - latin-ext
                         - vietnamese
         '404':
-          description: Font not found
+          description: Font family not found
