@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: font.delivery REST API
   version: 1.2.0
-  description: A sample API documentation
+  description: The REST API for font.delivery
 servers:
   - url: https://font.delivery/api/v1
 paths:
@@ -22,12 +22,15 @@ paths:
                     id:
                       type: string
                       description: Unique identifier for the font
+                      example: archivo-narrow
                     name:
                       type: string
                       description: Name of the font
+                      example: "Archivo Narrow"
                     designer:
                       type: string
                       description: Name(s) of the font designer(s)
+                      example: "Omnibus-Type"
   /fonts/{id}.json:
     get:
       summary: Get details for a specific font
@@ -49,9 +52,11 @@ paths:
                   id:
                     type: string
                     description: Unique identifier for the font
+                    example: "archivo-narrow"
                   subsets:
                     type: array
                     description: Available subsets for the font
+                    example: ["latin", "latin-ext", "vietnamese"]
                     items:
                       type: string
                       enum:
