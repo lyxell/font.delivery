@@ -123,8 +123,8 @@ func GatherMetadata(rootDir string) ([]FontFamily, error) {
 //
 // Returns e.g. []string{"100", "900"} for variable weights and []string{"400"}
 // for fixed weights.
-func getFontWeight(fontData FontFamily, font FontFamilyFont) []string {
-	for _, axis := range fontData.Axes {
+func getFontWeight(family FontFamily, font FontFamilyFont) []string {
+	for _, axis := range family.Axes {
 		if axis.Tag == "wght" {
 			return []string{
 				fmt.Sprintf("%v", axis.MinValue),
@@ -133,6 +133,22 @@ func getFontWeight(fontData FontFamily, font FontFamilyFont) []string {
 		}
 	}
 	return []string{fmt.Sprintf("%d", font.Weight)}
+}
+
+// Gets the font weights for a font family.
+func getFontWeights(family FontFamily) []string {
+	for _, axis := range family.Axes {
+		if axis.Tag == "wght" {
+			return []string{
+				fmt.Sprintf("%v-%v", axis.MinValue, axis.MaxValue),
+			}
+		}
+	}
+	result := []string{}
+	for _, f := range family.Fonts {
+		result = append(result, fmt.Sprintf("%d", f.Weight))
+	}
+	return result
 }
 
 func generateCSS(family FontFamily, subsets []string) string {
@@ -283,10 +299,12 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 		fontData := struct {
 			ID      string   `json:"id"`
 			Subsets []string `json:"subsets"`
+			Weights []string `json:"weights"`
 			Styles  []string `json:"styles"`
 		}{
 			ID:      family.Id,
 			Subsets: intersection(subsets, family.Subsets),
+			Weights: getFontWeights(family),
 			Styles:  styles,
 		}
 		fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
