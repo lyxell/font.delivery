@@ -38,7 +38,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: The ID of the font family to retrieve
+          description: The ID of the font family
           schema:
             type: string
       responses:
