@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 1.3.0
+  version: 1.4.0
   description: The REST API for font.delivery
   license:
     name: MIT
@@ -23,6 +23,7 @@ paths:
                 type: array
                 items:
                   type: object
+                  required: ["id", "name", "designer"]
                   properties:
                     id:
                       type: string
@@ -54,6 +55,7 @@ paths:
             application/json:
               schema:
                 type: object
+                required: ["id", "subsets", "styles"]
                 properties:
                   id:
                     type: string

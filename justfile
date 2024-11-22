@@ -28,6 +28,9 @@ serve:
 serve-production:
 	miniserve --index index.html dist/
 
+lint-api:
+	redocly lint api.yml
+
 test:
 	go test -coverprofile=coverage.out ./...
 
