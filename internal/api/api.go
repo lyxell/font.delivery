@@ -388,7 +388,7 @@ type GetFontByIDResponse struct {
 		Subsets []GetFontByID200Subsets `json:"subsets"`
 
 		// Weights Available font weights for the font family
-		Weights *[]string `json:"weights,omitempty"`
+		Weights []string `json:"weights"`
 	}
 }
 type GetFontByID200Styles string
@@ -514,7 +514,7 @@ func ParseGetFontByIDResponse(rsp *http.Response) (*GetFontByIDResponse, error) 
 			Subsets []GetFontByID200Subsets `json:"subsets"`
 
 			// Weights Available font weights for the font family
-			Weights *[]string `json:"weights,omitempty"`
+			Weights []string `json:"weights"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
