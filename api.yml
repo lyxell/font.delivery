@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 1.4.0
+  version: 1.5.0
   description: The REST API for font.delivery
   license:
     name: MIT
@@ -82,3 +82,49 @@ paths:
                         - italic
         '404':
           description: Font family not found
+  /download/{id}_{subset}_{weight}_{style}.woff2:
+    get:
+      operationId: downloadFont
+      summary: Download a font
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the font family
+          schema:
+            type: string
+        - name: subset
+          in: path
+          required: true
+          description: The subset of the font to retrieve
+          schema:
+            type: string
+            enum:
+              - latin
+              - latin-ext
+              - vietnamese
+        - name: weight
+          in: path
+          required: true
+          description: The weight of the font to retrieve
+          schema:
+            type: string
+        - name: style
+          in: path
+          required: true
+          description: The style of the font to retrieve
+          schema:
+            type: string
+            enum:
+              - normal
+              - italic
+      responses:
+        '200':
+          description: Successful response
+          content:
+            font/woff2:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Font not found

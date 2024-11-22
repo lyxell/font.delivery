@@ -11,7 +11,7 @@ build-web:
 build-fonts: compile-builder
 	./builder --input-dir=fonts/ --output-dir=dist/
 	# Generate a master css file containing all font css files
-	cat dist/*.css > dist/_.css
+	cat dist/*.css > dist/api/v1/download/_.css
 
 # Build API docs
 build-api-docs:
