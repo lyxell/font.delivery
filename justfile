@@ -1,6 +1,9 @@
 compile-builder:
 	go build ./cmd/builder
 
+compile-fontdl:
+	go build ./cmd/fontdl
+
 # Build web interface
 build-web:
 	cd web && just build
