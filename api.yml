@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: font.delivery REST API
-  version: 1.0.0
+  version: 1.1.0
   description: A sample API documentation
 servers:
   - url: https://font.delivery/api/v1
@@ -28,3 +28,26 @@ paths:
                     designer:
                       type: string
                       description: Name(s) of the font designer(s)
+  /fonts/{id}.json:
+    get:
+      summary: Get details for a specific font
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the font to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier for the font
+        '404':
+          description: Font not found

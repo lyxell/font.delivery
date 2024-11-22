@@ -252,7 +252,14 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontPath string, ou
 }
 
 func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string) error {
+	apiDir := filepath.Join(outputDir, "api", "v1")
+	err := os.MkdirAll(filepath.Join(apiDir, "fonts"), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	var apiData []map[string]string
+
 	for _, font := range families {
 		// Skip fonts that do not have any renderable subsets
 		if len(intersection(subsets, font.Subsets)) == 0 {
@@ -263,12 +270,20 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 			"name":     font.Name,
 			"designer": font.Designer,
 		})
-	}
 
-	apiDir := filepath.Join(outputDir, "api", "v1")
-	err := os.MkdirAll(apiDir, os.ModePerm)
-	if err != nil {
-		return err
+		fontData := struct {
+			ID string `json:"id"`
+		}{
+			ID: font.Id,
+		}
+		fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(filepath.Join(apiDir, "fonts", font.Id+".json"), fontDataBytes, 0o644)
+		if err != nil {
+			return err
+		}
 	}
 
 	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")
