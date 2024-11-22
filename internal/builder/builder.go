@@ -260,29 +260,36 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 
 	var apiData []map[string]string
 
-	for _, font := range families {
+	for _, family := range families {
 		// Skip fonts that do not have any renderable subsets
-		if len(intersection(subsets, font.Subsets)) == 0 {
+		if len(intersection(subsets, family.Subsets)) == 0 {
 			continue
 		}
 		apiData = append(apiData, map[string]string{
-			"id":       font.Id,
-			"name":     font.Name,
-			"designer": font.Designer,
+			"id":       family.Id,
+			"name":     family.Name,
+			"designer": family.Designer,
 		})
+
+		styles := []string{}
+		for _, f := range family.Fonts {
+			styles = append(styles, f.Style)
+		}
 
 		fontData := struct {
 			ID      string   `json:"id"`
 			Subsets []string `json:"subsets"`
+			Styles  []string `json:"styles"`
 		}{
-			ID:      font.Id,
-			Subsets: intersection(subsets, font.Subsets),
+			ID:      family.Id,
+			Subsets: intersection(subsets, family.Subsets),
+			Styles:  styles,
 		}
 		fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(filepath.Join(apiDir, "fonts", font.Id+".json"), fontDataBytes, 0o644)
+		err = os.WriteFile(filepath.Join(apiDir, "fonts", family.Id+".json"), fontDataBytes, 0o644)
 		if err != nil {
 			return err
 		}

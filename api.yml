@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: font.delivery REST API
-  version: 1.2.0
+  version: 1.3.0
   description: The REST API for font.delivery
 servers:
   - url: https://font.delivery/api/v1
@@ -63,5 +63,14 @@ paths:
                         - latin
                         - latin-ext
                         - vietnamese
+                  styles:
+                    type: array
+                    description: Available styles for the font family
+                    example: ["normal", "italic"]
+                    items:
+                      type: string
+                      enum:
+                        - normal 
+                        - italic
         '404':
           description: Font family not found
