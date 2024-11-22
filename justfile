@@ -1,3 +1,12 @@
+# This action is run by CI when releasing fontdl
+build-fontdl NAME:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/{{NAME}}-linux-amd64 ./cmd/fontdl
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o bin/{{NAME}}-macos-amd64 ./cmd/fontdl
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/{{NAME}}-macos-arm64 ./cmd/fontdl
+
+package-fontdl:
+	just build-fontdl "$(git describe --exact-match --tags)"
+
 compile-builder:
 	go build ./cmd/builder
 
