@@ -262,7 +262,6 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 			"id":       font.Id,
 			"name":     font.Name,
 			"designer": font.Designer,
-			"css":      fmt.Sprintf("/%s.css", font.Id),
 		})
 	}
 
