@@ -1,13 +1,18 @@
 openapi: 3.0.0
+security: []
 info:
   title: font.delivery REST API
   version: 1.3.0
   description: The REST API for font.delivery
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: https://font.delivery/api/v1
 paths:
   /fonts.json:
     get:
+      operationId: getFonts
       summary: Get a list of all font families
       responses:
         '200':
@@ -33,6 +38,7 @@ paths:
                       example: "Omnibus-Type"
   /fonts/{id}.json:
     get:
+      operationId: getFontByID
       summary: Get details for a specific font family
       parameters:
         - name: id
