@@ -20,6 +20,11 @@ paths:
                   type: object
                   properties:
                     id:
-                      type: integer
+                      type: string
+                      description: Unique identifier for the font
                     name:
                       type: string
+                      description: Name of the font
+                    designer:
+                      type: string
+                      description: Name(s) of the font designer(s)

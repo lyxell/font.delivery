@@ -1,28 +1,32 @@
 compile-builder:
 	go build ./cmd/builder
 
+# Build web interface
 build-web:
 	cd web && just build
+	cp -r web/dist/* dist/
+	echo "404 Not Found" > dist/404.html
 
+# Generate WOFF2 and CSS files
 build-fonts: compile-builder
-	rm -rf dist
-	# Generate font files
-	./builder --input-dir=fonts --output-dir=dist
+	./builder --input-dir=fonts/ --output-dir=dist/
 	# Generate a master css file containing all font css files
 	cat dist/*.css > dist/_.css
-	# Build API docs
-	redocly build-docs --output=dist/reference/index.html api.yml
-	# Move files to web (assumes folder web/public/ exists)
-	rm -rf web/public/*
-	cp -r dist/* web/public/
 
-build: build-fonts build-web
+# Build API docs
+build-api-docs:
+	redocly build-docs --output=dist/reference/index.html api.yml
+
+clean-dist:
+	rm -rf dist/*
+
+build: clean-dist build-fonts build-api-docs build-web
 
 serve:
 	cd web && just serve
 
 serve-production:
-	miniserve --index index.html web/dist/
+	miniserve --index index.html dist/
 
 test:
 	go test -coverprofile=coverage.out ./...
