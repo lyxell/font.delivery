@@ -1,6 +1,10 @@
 compile-builder:
 	go build ./cmd/builder
 
+compile-fontdl:
+	oapi-codegen -generate client,types -o internal/api/api.go api.yml
+	go build ./cmd/fontdl
+
 # Build web interface
 build-web:
 	cd web && just build

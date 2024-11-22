@@ -12,5 +12,6 @@ pkgs.mkShell {
 	pkgs.nodejs_22
 	pkgs.woff2
 	pkgs.redocly
+	pkgs.oapi-codegen
   ];
 }
