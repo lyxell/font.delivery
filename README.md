@@ -1,6 +1,7 @@
 <img src=".github/cover.png">
 
-An open-source webfont download service.
+An open-source webfont download service making it easy to download and use
+WOFF2 webfonts.
 
 ## Get started
 
