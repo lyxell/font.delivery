@@ -10,10 +10,11 @@ build-web:
 # api
 # =================
 
-generate-api-docs:
+generate-api-docs: validate-api-spec
+	mkdir -p dist/reference
 	redocly build-docs --output=dist/reference/index.html api.yml
 
-lint-api:
+validate-api-spec:
 	redocly lint api.yml
 
 # fontdl
