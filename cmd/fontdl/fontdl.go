@@ -68,18 +68,15 @@ func main() {
 			huh.NewSelect[string]().
 				Title("Select a subset").
 				Options(subsetOptions...).
-				Value(&selectedSubset).
-				Height(5),
+				Value(&selectedSubset),
 			huh.NewSelect[string]().
 				Title("Select a style").
 				Options(styleOptions...).
-				Value(&selectedStyle).
-				Height(5),
+				Value(&selectedStyle),
 			huh.NewSelect[string]().
 				Title("Select a weight").
 				Options(weightOptions...).
-				Value(&selectedWeight).
-				Height(5),
+				Value(&selectedWeight),
 		),
 	).WithTheme(huh.ThemeBase()).Run()
 	if err != nil {
