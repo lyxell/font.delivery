@@ -1,13 +1,9 @@
-name: Build and Release fontdl
+name: Build (and release) fontdl
 
-on:
-  push:
-    tags:
-      - 'fontdl-v*'
+on: push
 
 jobs:
   build:
-    name: Build and Release fontdl
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,7 +11,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell --run "just package-fontdl"
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
+        # Only release if tag is on format fontdl-{version}
+        if: startsWith(github.ref, 'refs/tags/fontdl-')
         with:
           files: bin/*
