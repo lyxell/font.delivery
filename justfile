@@ -5,7 +5,6 @@ build-web:
 	cd web && just build
 	mkdir -p dist
 	cp -r web/dist/* dist/
-	echo "404 Not Found" > dist/404.html # TODO: Put this in web/
 
 # api
 # =================
