@@ -19,12 +19,13 @@ validate-api-spec:
 # fontdl
 # =================
 
-# TODO: Generate this with go generate
+# TODO: Generate the client with go generate
 compile-fontdl:
 	oapi-codegen -generate client,types -o internal/api/api.go api.yml
 	go build ./cmd/fontdl
 
 build-fontdl NAME:
+	oapi-codegen -generate client,types -o internal/api/api.go api.yml
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/{{NAME}}-linux-amd64 ./cmd/fontdl
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o bin/{{NAME}}-macos-amd64 ./cmd/fontdl
 	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/{{NAME}}-macos-arm64 ./cmd/fontdl
