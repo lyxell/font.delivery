@@ -85,7 +85,10 @@ const App = () => {
 	};
 
 	return (
-		<div className="container mx-auto h-screen flex flex-col px-6" style={{fontFamily: "Inter, Tofu"}}>
+		<div
+			className="container mx-auto h-screen flex flex-col px-6"
+			style={{ fontFamily: "Inter, Tofu" }}
+		>
 			<div className="flex justify-between items-center py-4">
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
@@ -115,12 +118,18 @@ const App = () => {
 							<div className="flex justify-between">
 								<span style={{ fontSize: "16px", fontWeight: 600 }}>
 									{font.name}{" "}
-									<span className="text-muted-foreground text-sm font-normal italic" style={{fontFamily: `'Vollkorn', Tofu`}}>
+									<span
+										className="text-muted-foreground text-sm font-normal italic"
+										style={{ fontFamily: `'Vollkorn', Tofu` }}
+									>
 										by {font.designer}
 									</span>
 								</span>
 							</div>
-							<div className={`text-7xl whitespace-nowrap`} style={{fontFamily: `'${font.name}', Tofu`}}>
+							<div
+								className={`text-7xl whitespace-nowrap`}
+								style={{ fontFamily: `'${font.name}', Tofu` }}
+							>
 								{previewText.trim() ||
 									"The quick brown fox jumps over the lazy dog"}
 							</div>
