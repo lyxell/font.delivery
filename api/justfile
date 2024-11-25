@@ -1,0 +1,17 @@
+build:
+	go build ./cmd/builder
+
+test:
+	go test ./...
+
+fmt:
+	gofumpt -w .
+
+generate-api-files: build
+	./builder --input-dir=fonts/ --output-dir=dist/
+	cat dist/*.css > dist/api/v1/download/_.css
+
+generate-api-docs:
+	mkdir -p dist/reference
+	redocly lint api.yml
+	redocly build-docs --output=dist/reference/index.html api.yml
