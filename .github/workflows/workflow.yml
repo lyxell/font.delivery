@@ -3,7 +3,7 @@ name: Build
 on: push
 
 jobs:
-  build-api:
+  build-and-test-api:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -12,7 +12,11 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell --run "just build"
         working-directory: ./api
-  build-cli:
+      - run: nix-shell --run "just test"
+        working-directory: ./api
+      - run: nix-shell --run "just generate-api-docs"
+        working-directory: ./api
+  build-and-test-cli:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +24,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell --run "just build"
+        working-directory: ./cli
+      - run: nix-shell --run "just test"
         working-directory: ./cli
   build-web:
     runs-on: ubuntu-latest
