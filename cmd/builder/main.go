@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
-	"sync"
 
+	"github.com/destel/rill"
 	"github.com/sfhorg/font.delivery/internal/builder"
 )
 
-func run(fontPath, outputDir string, subsets []string) error {
-	families, err := builder.GatherMetadata(fontPath)
+func run(inputDir string, outputDir string, subsets []string) error {
+	families, err := builder.GatherMetadata(inputDir)
 	if err != nil {
 		return fmt.Errorf("failed to gather metadata: %w", err)
 	}
@@ -31,27 +32,22 @@ func run(fontPath, outputDir string, subsets []string) error {
 		return fmt.Errorf("failed to generate CSS files: %w", err)
 	}
 
-	var wg sync.WaitGroup
-	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
+	jobs := rill.FromSlice(families, nil)
 
-	for _, family := range families {
-		wg.Add(1)
-		semaphore <- struct{}{}
-		go func(f builder.FontFamily) {
-			defer wg.Done()
-			if err := builder.GenerateWOFF2Files(f, subsets, fontPath, outputDir); err != nil {
-				log.Println("Error generating WOFF2 files:", err)
-			}
-			<-semaphore
-		}(family)
+	// Create needed directories
+	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
+	err = os.MkdirAll(fontOutputDir, os.ModePerm)
+	if err != nil {
+		return err
 	}
-	wg.Wait()
 
-	return nil
+	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(f builder.FontFamily) error {
+		return builder.GenerateWOFF2Files(f, subsets, inputDir, fontOutputDir)
+	})
 }
 
 func main() {
-	fontPath := flag.String("input-dir", "fonts", "Input directory containing font files")
+	inputDir := flag.String("input-dir", "fonts", "Input directory containing font files")
 	outputDir := flag.String("output-dir", "out", "Output directory for generated files")
 	flag.Parse()
 
@@ -61,7 +57,7 @@ func main() {
 		"vietnamese",
 	}
 
-	if err := run(*fontPath, *outputDir, subsets); err != nil {
+	if err := run(*inputDir, *outputDir, subsets); err != nil {
 		log.Fatalf("error: %v", err)
 	}
 }
