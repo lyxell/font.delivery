@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/destel/rill"
 	"github.com/sfhorg/font.delivery/internal/builder"
 )
 
-func run(fontPath, outputDir string, subsets []string) error {
-	families, err := builder.GatherMetadata(fontPath)
+func run(inputDir string, outputDir string, subsets []string) error {
+	families, err := builder.GatherMetadata(inputDir)
 	if err != nil {
 		return fmt.Errorf("failed to gather metadata: %w", err)
 	}
@@ -33,13 +34,20 @@ func run(fontPath, outputDir string, subsets []string) error {
 
 	jobs := rill.FromSlice(families, nil)
 
+	// Create needed directories
+	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
+	err = os.MkdirAll(fontOutputDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(f builder.FontFamily) error {
-		return builder.GenerateWOFF2Files(f, subsets, fontPath, outputDir)
+		return builder.GenerateWOFF2Files(f, subsets, inputDir, fontOutputDir)
 	})
 }
 
 func main() {
-	fontPath := flag.String("input-dir", "fonts", "Input directory containing font files")
+	inputDir := flag.String("input-dir", "fonts", "Input directory containing font files")
 	outputDir := flag.String("output-dir", "out", "Output directory for generated files")
 	flag.Parse()
 
@@ -49,7 +57,7 @@ func main() {
 		"vietnamese",
 	}
 
-	if err := run(*fontPath, *outputDir, subsets); err != nil {
+	if err := run(*inputDir, *outputDir, subsets); err != nil {
 		log.Fatalf("error: %v", err)
 	}
 }
