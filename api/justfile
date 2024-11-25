@@ -7,6 +7,9 @@ test:
 fmt:
 	gofumpt -w .
 
+serve:
+	miniserve dist/
+
 generate-api-files: build
 	./builder --input-dir=fonts/ --output-dir=dist/
 	cat dist/*.css > dist/api/v1/download/_.css

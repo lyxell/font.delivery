@@ -7,6 +7,7 @@ pkgs.mkShell {
 	pkgs.gopls
 	pkgs.harfbuzz
 	pkgs.just
+	pkgs.miniserve
 	pkgs.redocly
 	pkgs.woff2
   ];
