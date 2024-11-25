@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"sync"
 
+	"github.com/destel/rill"
 	"github.com/sfhorg/font.delivery/internal/builder"
 )
 
@@ -31,23 +31,11 @@ func run(fontPath, outputDir string, subsets []string) error {
 		return fmt.Errorf("failed to generate CSS files: %w", err)
 	}
 
-	var wg sync.WaitGroup
-	semaphore := make(chan struct{}, runtime.GOMAXPROCS(0))
+	jobs := rill.FromSlice(families, nil)
 
-	for _, family := range families {
-		wg.Add(1)
-		semaphore <- struct{}{}
-		go func(f builder.FontFamily) {
-			defer wg.Done()
-			if err := builder.GenerateWOFF2Files(f, subsets, fontPath, outputDir); err != nil {
-				log.Println("Error generating WOFF2 files:", err)
-			}
-			<-semaphore
-		}(family)
-	}
-	wg.Wait()
-
-	return nil
+	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(f builder.FontFamily) error {
+		return builder.GenerateWOFF2Files(f, subsets, fontPath, outputDir)
+	})
 }
 
 func main() {
