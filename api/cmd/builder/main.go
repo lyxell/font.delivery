@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/destel/rill"
-	"github.com/sfhorg/font.delivery/internal/builder"
+	"github.com/sfhorg/font.delivery/api/internal/builder"
 )
 
 func run(inputDir string, outputDir string, subsets []string) error {

@@ -1,0 +1,17 @@
+tag := `git describe --exact-match --tags || true`
+
+build:
+	oapi-codegen -generate client,types -o internal/api/api.go ../api/api.yml
+	go build ./cmd/fontdl
+
+test:
+	go test ./...
+
+fmt:
+	gofumpt -w .
+
+package:
+	oapi-codegen -generate client,types -o internal/api/api.go ../api/api.yml
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dist/{{tag}}-linux-amd64 ./cmd/fontdl
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dist/{{tag}}-macos-amd64 ./cmd/fontdl
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dist/{{tag}}-macos-arm64 ./cmd/fontdl
