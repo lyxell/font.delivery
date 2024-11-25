@@ -42,7 +42,7 @@ type FontFamily struct {
 	Minisite string           `json:"minisite_url"`
 }
 
-// Take the intersection of two slices.
+// Get the intersection of two slices.
 // Assumes slices contain no duplicates.
 func intersection(slice1, slice2 []string) []string {
 	var result []string
@@ -67,11 +67,11 @@ func parseMetadataProtobuf(path string) (*FamilyProto, error) {
 	return &protoInstance, nil
 }
 
-// GatherMetadata walks through the supplied directory and gathers metadata
-// from all METADATA.pb files it stumbles upon.
+// CollectMetadata walks the given directory and gathers metadata from all
+// METADATA.pb files it finds by walking the directory recursively.
 //
 // The slice of metadata will be sorted by the name of the font family.
-func GatherMetadata(rootDir string) ([]FontFamily, error) {
+func CollectMetadata(rootDir string) ([]FontFamily, error) {
 	var metadata []FontFamily
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -195,20 +195,12 @@ func getLicenseDirName(license string) string {
 	}
 }
 
-func GenerateCSSFiles(families []FontFamily, subsets []string, outputDir string) error {
-	for _, f := range families {
-		css := generateCSS(f, subsets)
-		err := os.WriteFile(filepath.Join(outputDir, f.Id+".css"), []byte(css), 0o644)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func GenerateFamilyCSSFile(family FontFamily, subsets []string, outputDir string) error {
+	css := generateCSS(family, subsets)
+	return os.WriteFile(filepath.Join(outputDir, family.Id+".css"), []byte(css), 0o644)
 }
 
-func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string, fontOutputDir string) error {
-	const tmpDir = "temp"
-
+func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string, fontOutputDir string, tmpDir string) error {
 	for _, subset := range subsets {
 		// We add the family.Id here to avoid race conditions where goroutines
 		// could overwrite the files of other goroutines
@@ -228,7 +220,6 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 			strings.ToLower(strings.ReplaceAll(family.Name, " ", "")),
 			font.Filename,
 		)
-		fmt.Println("Processing", inputPath)
 		for _, subset := range intersection(subsets, family.Subsets) {
 
 			// unicodeRangesPath is where harfbuzz reads the unicode ranges for subsetting from
@@ -261,17 +252,12 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 	return nil
 }
 
-func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string) error {
-	apiDir := filepath.Join(outputDir, "api", "v1")
-	err := os.MkdirAll(filepath.Join(apiDir, "fonts"), os.ModePerm)
-	if err != nil {
-		return err
-	}
-
+// Write the index JSON file containing names and ids for all families.
+// I.e. api/v1/fonts.json
+func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir string) error {
 	var apiData []map[string]string
-
 	for _, family := range families {
-		// Skip fonts that do not have any renderable subsets
+		// Skip families that do not have any renderable subsets
 		if len(intersection(subsets, family.Subsets)) == 0 {
 			continue
 		}
@@ -280,37 +266,39 @@ func GenerateJSONFiles(families []FontFamily, subsets []string, outputDir string
 			"name":     family.Name,
 			"designer": family.Designer,
 		})
-
-		styles := []string{}
-		for _, f := range family.Fonts {
-			styles = append(styles, f.Style)
-		}
-
-		fontData := struct {
-			ID      string   `json:"id"`
-			Subsets []string `json:"subsets"`
-			Weights []string `json:"weights"`
-			Styles  []string `json:"styles"`
-		}{
-			ID:      family.Id,
-			Subsets: intersection(subsets, family.Subsets),
-			Weights: getFontWeights(family),
-			Styles:  styles,
-		}
-		fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(filepath.Join(apiDir, "fonts", family.Id+".json"), fontDataBytes, 0o644)
-		if err != nil {
-			return err
-		}
 	}
-
 	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")
 	if err != nil {
 		return err
 	}
+	return os.WriteFile(filepath.Join(outputDir, "fonts.json"), apiDataBytes, 0o644)
+}
 
-	return os.WriteFile(filepath.Join(apiDir, "fonts.json"), apiDataBytes, 0o644)
+// Write the individual JSON file for the family.
+// E.g. api/v1/fonts/archivo-narrow.json
+func GenerateFamilyJSONFile(family FontFamily, subsets []string, outputDir string) error {
+	// Skip families that do not have any renderable subsets
+	if len(intersection(subsets, family.Subsets)) == 0 {
+		return nil
+	}
+	styles := []string{}
+	for _, f := range family.Fonts {
+		styles = append(styles, f.Style)
+	}
+	fontData := struct {
+		ID      string   `json:"id"`
+		Subsets []string `json:"subsets"`
+		Weights []string `json:"weights"`
+		Styles  []string `json:"styles"`
+	}{
+		ID:      family.Id,
+		Subsets: intersection(subsets, family.Subsets),
+		Weights: getFontWeights(family),
+		Styles:  styles,
+	}
+	fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(outputDir, family.Id+".json"), fontDataBytes, 0o644)
 }

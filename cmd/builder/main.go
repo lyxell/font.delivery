@@ -13,36 +13,41 @@ import (
 )
 
 func run(inputDir string, outputDir string, subsets []string) error {
-	families, err := builder.GatherMetadata(inputDir)
-	if err != nil {
-		return fmt.Errorf("failed to gather metadata: %w", err)
-	}
-	if err := os.MkdirAll("temp", os.ModePerm); err != nil {
+	// Create needed directories
+	tmpDir := "tmp"
+	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
+	jsonOutputDir := filepath.Join(outputDir, "api", "v1", "fonts")
+	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(fontOutputDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
-
-	if err := builder.GenerateJSONFiles(families, subsets, outputDir); err != nil {
-		return fmt.Errorf("failed to generate JSON files: %w", err)
+	if err := os.MkdirAll(jsonOutputDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create json output directory: %w", err)
 	}
 
-	if err := builder.GenerateCSSFiles(families, subsets, outputDir); err != nil {
-		return fmt.Errorf("failed to generate CSS files: %w", err)
-	}
-
-	jobs := rill.FromSlice(families, nil)
-
-	// Create needed directories
-	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
-	err = os.MkdirAll(fontOutputDir, os.ModePerm)
+	// Collect metadata
+	families, err := builder.CollectMetadata(inputDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to collect metadata: %w", err)
+	}
+	// Generate index JSON file
+	if err := builder.GenerateIndexJSONFile(families, subsets, outputDir); err != nil {
+		return fmt.Errorf("failed to generate JSON file: %w", err)
 	}
 
-	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(f builder.FontFamily) error {
-		return builder.GenerateWOFF2Files(f, subsets, inputDir, fontOutputDir)
+	// Generate files
+	jobs := rill.FromSlice(families, nil)
+	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(family builder.FontFamily) error {
+		fmt.Println("Building", family.Name)
+		if err := builder.GenerateFamilyJSONFile(family, subsets, outputDir); err != nil {
+			return fmt.Errorf("failed to generate JSON file: %w", err)
+		}
+		if err := builder.GenerateFamilyCSSFile(family, subsets, jsonOutputDir); err != nil {
+			return fmt.Errorf("failed to generate CSS file: %w", err)
+		}
+		return builder.GenerateWOFF2Files(family, subsets, inputDir, fontOutputDir, tmpDir)
 	})
 }
 
