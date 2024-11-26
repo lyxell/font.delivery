@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	font-family: Inter, "sans-serif";
+}
+
 /**
  * Source: https://github.com/googlefonts/tofu
  * License: Apache-2.0

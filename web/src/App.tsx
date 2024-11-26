@@ -112,6 +112,32 @@ function VirtualScroll<T>({
 	);
 }
 
+type CheckboxProps = {
+	label: string;
+	checked: boolean;
+	onChange?: (checked: boolean) => void;
+	disabled?: boolean;
+};
+
+export const Checkbox: React.FC<CheckboxProps> = ({
+	label,
+	checked,
+	onChange,
+	disabled,
+}) => {
+	return (
+		<label className="flex gap-1.5 items-center">
+			<input
+				type="checkbox"
+				checked={checked}
+				onChange={(e) => onChange?.(e.target.checked)}
+				disabled={disabled}
+			/>
+			{label}
+		</label>
+	);
+};
+
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
 	const { data: font } = useFont(fontId);
@@ -154,135 +180,96 @@ function DownloadForm({ fontId }: { fontId: string }) {
 	}
 
 	return (
-		<div
-			className="text-sm"
-			style={{
-				fontFamily: "Inter, Tofu",
-				display: "flex",
-				flexDirection: "column",
-				gap: 10,
-			}}
-		>
-			<p className="font-medium text-[15px] pr-5">Download {fontName}</p>
-			<fieldset>
+		<div className="text-sm flex flex-col gap-2">
+			<p className="font-medium pr-5">Download {fontName}</p>
+			<div>
 				<div className="text-muted-foreground mb-1">Styles</div>
 				{font?.styles.length == 1 ? (
-					<label className="flex gap-1.5">
-						<input checked={true} disabled type="checkbox" />
-						{font.styles[0]}
-					</label>
+					<Checkbox label={font.styles[0]} checked={true} disabled />
 				) : (
 					<>
-						<label className="flex gap-1.5">
-							<input
-								checked={allStyles}
-								onChange={(e) => setAllStyles(e.target.checked)}
-								type="checkbox"
-							/>
-							All styles
-						</label>
-						{!allStyles && (
-							<>
-								{font?.styles.map((style) => {
-									return (
-										<label className="flex gap-1.5">
-											<input
-												checked={selectedStyles.includes(style)}
-												onChange={(e) => {
-													setSelectedStyles(
-														e.target.checked
-															? [...selectedStyles, style]
-															: selectedStyles.filter((x) => x != style),
-													);
-												}}
-												type="checkbox"
-											/>
-											{style}
-										</label>
-									);
-								})}
-							</>
-						)}
+						<Checkbox
+							label="All styles"
+							checked={allStyles}
+							onChange={setAllStyles}
+						/>
+						{!allStyles &&
+							font?.styles.map((style) => (
+								<Checkbox
+									key={style}
+									label={style}
+									checked={selectedStyles.includes(style)}
+									onChange={(checked) =>
+										setSelectedStyles(
+											checked
+												? [...selectedStyles, style]
+												: selectedStyles.filter((x) => x !== style),
+										)
+									}
+								/>
+							))}
 					</>
 				)}
-			</fieldset>
-			<fieldset>
+			</div>
+			<div>
 				<div className="text-muted-foreground mb-1">Weights</div>
 				{font?.weights.length == 1 ? (
-					<label className="flex gap-1.5">
-						<input checked={true} disabled type="checkbox" />
-						{font.weights[0]}{" "}
-						{font.weights[0].includes("-") ? "(variable)" : "(fixed)"}
-					</label>
+					<Checkbox
+						label={`${font.weights[0]} ${
+							font.weights[0].includes("-") ? "(variable)" : "(fixed)"
+						}`}
+						checked={true}
+						disabled
+					/>
 				) : (
 					<>
-						<label className="flex gap-1.5">
-							<input
-								checked={allWeights}
-								onChange={(e) => setAllWeights(e.target.checked)}
-								type="checkbox"
-							/>
-							All weights
-						</label>
-						{!allWeights && (
-							<>
-								{font?.weights.map((weight) => {
-									return (
-										<label className="flex gap-1.5">
-											<input
-												checked={selectedWeights.includes(weight)}
-												onChange={(e) => {
-													setSelectedWeights(
-														e.target.checked
-															? [...selectedWeights, weight]
-															: selectedWeights.filter((x) => x != weight),
-													);
-												}}
-												type="checkbox"
-											/>
-											{weight}
-										</label>
-									);
-								})}
-							</>
-						)}
+						<Checkbox
+							label="All weights"
+							checked={allWeights}
+							onChange={setAllWeights}
+						/>
+						{!allWeights &&
+							font?.weights.map((weight) => (
+								<Checkbox
+									key={weight}
+									label={weight}
+									checked={selectedWeights.includes(weight)}
+									onChange={(checked) =>
+										setSelectedWeights(
+											checked
+												? [...selectedWeights, weight]
+												: selectedWeights.filter((x) => x !== weight),
+										)
+									}
+								/>
+							))}
 					</>
 				)}
-			</fieldset>
-			<fieldset>
+			</div>
+			<div>
 				<div className="text-muted-foreground mb-1">Subsets</div>
-				<label className="flex gap-1.5">
-					<input
-						checked={defaultSubset}
-						onChange={(e) => setDefaultSubset(e.target.checked)}
-						type="checkbox"
-					/>
-					Default subset (latin)
-				</label>
-				{!defaultSubset && (
-					<>
-						{font?.subsets.map((subset) => {
-							return (
-								<label className="flex gap-1.5">
-									<input
-										checked={selectedSubsets.includes(subset)}
-										onChange={(e) => {
-											setSelectedSubsets(
-												e.target.checked
-													? [...selectedSubsets, subset]
-													: selectedSubsets.filter((x) => x != subset),
-											);
-										}}
-										type="checkbox"
-									/>
-									{subset}
-								</label>
-							);
-						})}
-					</>
-				)}
-			</fieldset>
-			<div className="flex justify-end">
+				<Checkbox
+					label="Default subset (latin)"
+					checked={defaultSubset}
+					onChange={setDefaultSubset}
+				/>
+				{!defaultSubset &&
+					font?.subsets.map((subset) => (
+						<Checkbox
+							key={subset}
+							label={subset}
+							checked={selectedSubsets.includes(subset)}
+							onChange={(checked) =>
+								setSelectedSubsets(
+									checked
+										? [...selectedSubsets, subset]
+										: selectedSubsets.filter((x) => x !== subset),
+								)
+							}
+						/>
+					))}
+			</div>
+			<div className="flex justify-end pt-2">
 				<button
 					onClick={handleDownloadClick}
 					className="border border-2 p-1.5 px-3 rounded font-medium outline-none focus:border-blue-500"
@@ -306,10 +293,7 @@ function Main() {
 			: fonts;
 
 	return (
-		<div
-			className="container mx-auto h-screen flex flex-col px-6"
-			style={{ fontFamily: "Inter, Tofu" }}
-		>
+		<div className="container mx-auto h-screen flex flex-col px-6">
 			<div className="flex justify-between items-center py-4">
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
@@ -358,7 +342,7 @@ function Main() {
 										<Popover.Portal>
 											<Popover.Content
 												align="end"
-												className="w-72 rounded-md border border-2 bg-background p-4"
+												className="w-64 rounded-md border border-2 bg-background p-4"
 												sideOffset={5}
 											>
 												<DownloadForm fontId={font.id} />
