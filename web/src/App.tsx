@@ -114,12 +114,27 @@ function VirtualScroll<T>({
 
 function VariantSelector({ id }: { id: string }) {
 	const { data: font } = useFont(id);
-
-	let fontFiles: string[] = [];
+	const [allStyles, setAllStyles] = useState(true);
+	const [allWeights, setAllWeights] = useState(true);
+	const [defaultCharset, setDefaultCharset] = useState(true);
 
 	async function handleDownloadClick() {
+		let fontFiles: string[] = [];
+
+		const styles = font!.styles;
+		const weights = font!.weights;
+		const subsets = font!.subsets;
+
+		for (const subset of subsets) {
+			for (const weight of weights) {
+				for (const style of styles) {
+					fontFiles.push(`${id}_${subset}_${weight}_${style}`);
+				}
+			}
+		}
+
 		const downloads = await Promise.all(
-			fontFiles.map((id) => fetch(`/api/v1/download/${id}.woff2`)),
+			fontFiles.map((name) => fetch(`/api/v1/download/${name}.woff2`)),
 		);
 		const blob = await downloadZip(downloads).blob();
 
@@ -130,10 +145,9 @@ function VariantSelector({ id }: { id: string }) {
 		link.remove();
 	}
 
-	if (!font) return <></>;
-
 	return (
 		<div
+			className="text-sm"
 			style={{
 				fontFamily: "Inter, Tofu",
 				display: "flex",
@@ -141,29 +155,82 @@ function VariantSelector({ id }: { id: string }) {
 				gap: 10,
 			}}
 		>
-			<p className="font-medium">Download {font.name}</p>
+			<p className="font-medium text-[15px] pr-5">
+				Download {font?.name ?? ""}
+			</p>
 			<fieldset>
+				<div className="text-muted-foreground mb-1">Styles</div>
 				<label className="flex gap-1.5">
-					<input checked type="checkbox" />
+					<input
+						checked={allStyles}
+						onChange={(e) => setAllStyles(e.target.checked)}
+						type="checkbox"
+					/>
 					All styles
 				</label>
+				{!allStyles && (
+					<>
+						{font?.styles.map((style) => {
+							return (
+								<label className="flex gap-1.5">
+									<input type="checkbox" />
+									{style}
+								</label>
+							);
+						})}
+					</>
+				)}
 			</fieldset>
 			<fieldset>
+				<div className="text-muted-foreground mb-1">Weights</div>
 				<label className="flex gap-1.5">
-					<input checked type="checkbox" />
+					<input
+						checked={allWeights}
+						onChange={(e) => setAllWeights(e.target.checked)}
+						type="checkbox"
+					/>
 					All weights
 				</label>
+				{!allWeights && (
+					<>
+						{font?.weights.map((weight) => {
+							return (
+								<label className="flex gap-1.5">
+									<input type="checkbox" />
+									{weight}
+								</label>
+							);
+						})}
+					</>
+				)}
 			</fieldset>
 			<fieldset>
+				<div className="text-muted-foreground mb-1">Charsets</div>
 				<label className="flex gap-1.5">
-					<input checked type="checkbox" />
-					Latin charset
+					<input
+						checked={defaultCharset}
+						onChange={(e) => setDefaultCharset(e.target.checked)}
+						type="checkbox"
+					/>
+					Default charset (latin)
 				</label>
+				{!defaultCharset && (
+					<>
+						{font?.subsets.map((subset) => {
+							return (
+								<label className="flex gap-1.5">
+									<input type="checkbox" />
+									{subset}
+								</label>
+							);
+						})}
+					</>
+				)}
 			</fieldset>
 			<div className="flex justify-end">
 				<button
 					onClick={handleDownloadClick}
-					className="border border-2 p-1.5 px-3 rounded"
+					className="border border-2 p-1.5 px-3 rounded font-medium outline-none focus:border-blue-500"
 				>
 					Download
 				</button>
@@ -198,7 +265,8 @@ function Main() {
 						value={filter}
 						onChange={(e) => setFilter(e.target.value)}
 						type="text"
-						className="border outline-none focus:border-blue-500 border-2 border-zinc-300 px-2 py-1.5 rounded"
+						aria-label="Search"
+						className="border outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
 					/>
 				</div>
 			</div>
@@ -210,7 +278,7 @@ function Main() {
 					renderItem={(font) => (
 						<div
 							key={font.id}
-							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
+							className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
 						>
 							<div className="flex justify-between">
 								<span style={{ fontSize: "16px", fontWeight: 600 }}>
@@ -227,7 +295,7 @@ function Main() {
 										<Popover.Trigger asChild>
 											<button
 												aria-label={`Download ${font.name}`}
-												className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 border-zinc-300 rounded text-sm flex items-center gap-1 text-md font-medium"
+												className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
 											>
 												<DownloadSimple size={32} />
 											</button>
@@ -245,7 +313,6 @@ function Main() {
 												>
 													<X size={24} />
 												</Popover.Close>
-												<Popover.Arrow className="fill-zinc-200" />
 											</Popover.Content>
 										</Popover.Portal>
 									</Popover.Root>
