@@ -349,7 +349,7 @@ function Main() {
 								</div>
 							</div>
 							<div
-								className={`text-7xl whitespace-nowrap`}
+								className={`text-6xl whitespace-nowrap`}
 								style={{ fontFamily: `'${font.name}', Tofu` }}
 							>
 								The quick brown fox jumps over the lazy dog
