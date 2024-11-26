@@ -307,7 +307,13 @@ function FontScroller({ filter }: { filter: string }) {
 					key={font.id}
 					className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
 				>
-					<div className="flex justify-between">
+					<div
+						className="absolute w-[40px] h-[178px] top-0 right-0 gradient"
+						style={{
+							background: "",
+						}}
+					/>
+					<div className="relative flex justify-between">
 						<span className="font-semibold">
 							{font.name}{" "}
 							<span className="text-muted-foreground text-sm font-normal">

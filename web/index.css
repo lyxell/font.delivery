@@ -30,6 +30,19 @@ body {
 }
 
 /**
+ * This rules creates a background gradient that is light on light mode
+ * and dark on dark mode.
+ */
+.gradient {
+	background: linear-gradient(to right, transparent, white);
+}
+@media (prefers-color-scheme: dark) {
+	.gradient {
+		background: linear-gradient(to right, transparent, black);
+	}
+}
+
+/**
  * This rule sets the text color for .text-muted-foreground, it
  * has the same value in light and dark mode
  */
@@ -44,9 +57,6 @@ body {
  */
 * {
 	@apply border-neutral-200;
-}
-.dark * {
-	@apply border-neutral-700;
 }
 @media (prefers-color-scheme: dark) {
 	* {
