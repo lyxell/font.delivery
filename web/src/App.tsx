@@ -141,9 +141,11 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
 	const { data: font } = useFont(fontId);
-	const [allStyles, setAllStyles] = useState(true);
-	const [allWeights, setAllWeights] = useState(true);
-	const [defaultSubset, setDefaultSubset] = useState(true);
+
+	const [allStylesChecked, setAllStylesChecked] = useState(true);
+	const [allWeightsChecked, setAllWeightsChecked] = useState(true);
+	const [defaultSubsetChecked, setDefaultSubsetChecked] = useState(true);
+
 	const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
 	const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
 	const [selectedSubsets, setSelectedSubsets] = useState<string[]>([]);
@@ -155,9 +157,9 @@ function DownloadForm({ fontId }: { fontId: string }) {
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
 
-		const styles = allStyles ? font!.styles : selectedStyles;
-		const weights = allWeights ? font!.weights : selectedWeights;
-		const subsets = defaultSubset ? "latin" : selectedSubsets;
+		const styles = allStylesChecked ? font!.styles : selectedStyles;
+		const weights = allWeightsChecked ? font!.weights : selectedWeights;
+		const subsets = defaultSubsetChecked ? "latin" : selectedSubsets;
 
 		for (const subset of subsets) {
 			for (const weight of weights) {
@@ -190,10 +192,10 @@ function DownloadForm({ fontId }: { fontId: string }) {
 					<>
 						<Checkbox
 							label="All styles"
-							checked={allStyles}
-							onChange={setAllStyles}
+							checked={allStylesChecked}
+							onChange={setAllStylesChecked}
 						/>
-						{!allStyles &&
+						{!allStylesChecked &&
 							font?.styles.map((style) => (
 								<Checkbox
 									key={style}
@@ -225,10 +227,10 @@ function DownloadForm({ fontId }: { fontId: string }) {
 					<>
 						<Checkbox
 							label="All weights"
-							checked={allWeights}
-							onChange={setAllWeights}
+							checked={allWeightsChecked}
+							onChange={setAllWeightsChecked}
 						/>
-						{!allWeights &&
+						{!allWeightsChecked &&
 							font?.weights.map((weight) => (
 								<Checkbox
 									key={weight}
@@ -250,10 +252,10 @@ function DownloadForm({ fontId }: { fontId: string }) {
 				<div className="text-muted-foreground mb-1">Subsets</div>
 				<Checkbox
 					label="Default subset (latin)"
-					checked={defaultSubset}
-					onChange={setDefaultSubset}
+					checked={defaultSubsetChecked}
+					onChange={setDefaultSubsetChecked}
 				/>
-				{!defaultSubset &&
+				{!defaultSubsetChecked &&
 					font?.subsets.map((subset) => (
 						<Checkbox
 							key={subset}
