@@ -61,6 +61,10 @@ paths:
                     type: string
                     description: Unique identifier for the font family
                     example: "archivo-narrow"
+                  name:
+                    type: string
+                    description: Name of the font family
+                    example: "Archivo Narrow"
                   subsets:
                     type: array
                     description: Available subsets for the font family

@@ -287,11 +287,13 @@ func GenerateFamilyJSONFile(family FontFamily, subsets []string, outputDir strin
 	}
 	fontData := struct {
 		ID      string   `json:"id"`
+		Name    string   `json:"name"`
 		Subsets []string `json:"subsets"`
 		Weights []string `json:"weights"`
 		Styles  []string `json:"styles"`
 	}{
 		ID:      family.Id,
+		Name:    family.Name,
 		Subsets: intersection(subsets, family.Subsets),
 		Weights: getFontWeights(family),
 		Styles:  styles,

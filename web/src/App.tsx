@@ -202,6 +202,7 @@ function VariantSelector({ id }: { id: string }) {
 
 	return (
 		<div>
+			<div className="font-medium mt-4">Select variants for {font.name}</div>
 			<div>Weights</div>
 			{font.weights.map((w) => (
 				<label key={w} className="block">
@@ -272,7 +273,6 @@ function VariantSelectors() {
 		<>
 			{selectedFonts.toArray().map((id) => (
 				<div key={id}>
-					<div className="font-medium mt-4">Select variants for {id}</div>
 					<VariantSelector id={id} />
 				</div>
 			))}
@@ -288,18 +288,25 @@ function Main() {
 	const { data: fonts } = useFonts();
 
 	return (
-		<div className="container mx-auto h-screen flex flex-col px-6">
+		<div
+			className="container mx-auto h-screen flex flex-col px-6"
+			style={{ fontFamily: "Inter, Tofu" }}
+		>
 			<div className="flex justify-between items-center py-4">
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
 				</div>
-				<button
-					onClick={() => setDownloading(true)}
-					className="text-muted-foreground text-sm flex flex-col items-center gap-1"
-				>
-					<BoxArrowDown size={32} />
-					Download
-				</button>
+				<div className="text-muted-foreground">
+					<button
+						onClick={() => setDownloading(true)}
+						className={clsx("text-sm flex flex-col items-center gap-1", {
+							"text-black": selectedFonts.size() > 0,
+						})}
+					>
+						<BoxArrowDown size={32} />
+						Download
+					</button>
+				</div>
 			</div>
 			{downloading && (
 				<div>
