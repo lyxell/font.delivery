@@ -136,6 +136,28 @@ func getFontWeight(family FontFamily, font FontFamilyFont) []string {
 }
 
 // Gets the font weights for a font family.
+func getFontStyles(family FontFamily) []string {
+	hasNormal := false
+	hasItalic := false
+	for _, f := range family.Fonts {
+		if f.Style == "normal" {
+			hasNormal = true
+		}
+		if f.Style == "italic" {
+			hasItalic = true
+		}
+	}
+	result := []string{}
+	if hasNormal {
+		result = append(result, "normal")
+	}
+	if hasItalic {
+		result = append(result, "italic")
+	}
+	return result
+}
+
+// Gets the font weights for a font family.
 func getFontWeights(family FontFamily) []string {
 	for _, axis := range family.Axes {
 		if axis.Tag == "wght" {
@@ -144,10 +166,15 @@ func getFontWeights(family FontFamily) []string {
 			}
 		}
 	}
-	result := []string{}
+	weights := make(map[string]bool)
 	for _, f := range family.Fonts {
-		result = append(result, fmt.Sprintf("%d", f.Weight))
+		weights[fmt.Sprintf("%d", f.Weight)] = true
 	}
+	result := []string{}
+	for k := range weights {
+		result = append(result, k)
+	}
+	slices.Sort(result)
 	return result
 }
 
@@ -281,10 +308,6 @@ func GenerateFamilyJSONFile(family FontFamily, subsets []string, outputDir strin
 	if len(intersection(subsets, family.Subsets)) == 0 {
 		return nil
 	}
-	styles := []string{}
-	for _, f := range family.Fonts {
-		styles = append(styles, f.Style)
-	}
 	fontData := struct {
 		ID      string   `json:"id"`
 		Name    string   `json:"name"`
@@ -296,7 +319,7 @@ func GenerateFamilyJSONFile(family FontFamily, subsets []string, outputDir strin
 		Name:    family.Name,
 		Subsets: intersection(subsets, family.Subsets),
 		Weights: getFontWeights(family),
-		Styles:  styles,
+		Styles:  getFontStyles(family),
 	}
 	fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
 	if err != nil {

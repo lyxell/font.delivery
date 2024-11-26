@@ -2,7 +2,7 @@ build:
 	go build ./cmd/builder
 
 test:
-	go test ./...
+	go test -coverprofile=coverage.out ./...
 
 fmt:
 	gofumpt -w .
