@@ -17,6 +17,7 @@ interface Font {
 	designer: string;
 	subsets: string[];
 	weights: string[];
+	styles: string[];
 }
 
 function useFont(id: string) {
@@ -54,6 +55,9 @@ interface FontStore {
 
 	selectedWeights: Record<string, SortedSet<string>>;
 	toggleWeight: (fontId: string, weight: string) => void;
+
+	selectedStyles: Record<string, SortedSet<string>>;
+	toggleStyle: (fontId: string, style: string) => void;
 }
 
 const useFontStore = create<FontStore>((set) => ({
@@ -101,6 +105,24 @@ const useFontStore = create<FontStore>((set) => ({
 				selectedWeights: {
 					...state.selectedWeights,
 					[fontId]: newWeights,
+				},
+			};
+		}),
+
+	selectedStyles: {},
+	toggleStyle: (fontId: string, style: string) =>
+		set((state) => {
+			const currentStyles = state.selectedStyles[fontId]?.toArray() ?? [];
+			const newStyles = SortedSet.fromArray(currentStyles);
+			if (newStyles.has(style)) {
+				newStyles.delete(style);
+			} else {
+				newStyles.add(style);
+			}
+			return {
+				selectedStyles: {
+					...state.selectedStyles,
+					[fontId]: newStyles,
 				},
 			};
 		}),
@@ -167,8 +189,14 @@ function VirtualScroll({ items, itemHeight, renderItem }: VirtualScrollProps) {
 
 function VariantSelector({ id }: { id: string }) {
 	const { data: font } = useFont(id);
-	const { selectedWeights, selectedSubsets, toggleWeight, toggleSubset } =
-		useFontStore();
+	const {
+		selectedWeights,
+		selectedSubsets,
+		selectedStyles,
+		toggleWeight,
+		toggleSubset,
+		toggleStyle,
+	} = useFontStore();
 
 	if (!font) return <></>;
 
@@ -196,19 +224,33 @@ function VariantSelector({ id }: { id: string }) {
 					{s}
 				</label>
 			))}
+			<div>Styles</div>
+			{font.styles.map((s) => (
+				<label key={s} className="block">
+					<input
+						type="checkbox"
+						checked={selectedStyles[id]?.has(s) || false}
+						onChange={() => toggleStyle(id, s)}
+					/>
+					{s}
+				</label>
+			))}
 		</div>
 	);
 }
 
 function VariantSelectors() {
-	const { selectedFonts, selectedWeights, selectedSubsets } = useFontStore();
+	const { selectedFonts, selectedWeights, selectedSubsets, selectedStyles } =
+		useFontStore();
 
 	let fontFiles: string[] = [];
 
 	for (const id of selectedFonts.toArray()) {
 		for (const subset of selectedSubsets[id]?.toArray() ?? []) {
 			for (const weight of selectedWeights[id]?.toArray() ?? []) {
-				fontFiles.push(`${id}_${subset}_${weight}_normal`);
+				for (const style of selectedStyles[id]?.toArray() ?? []) {
+					fontFiles.push(`${id}_${subset}_${weight}_${style}`);
+				}
 			}
 		}
 	}
