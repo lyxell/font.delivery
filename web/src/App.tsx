@@ -112,16 +112,16 @@ function VirtualScroll<T>({
 	);
 }
 
-function VariantSelector({ id }: { id: string }) {
+function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
-	const { data: font } = useFont(id);
+	const { data: font } = useFont(fontId);
 	const [allStyles, setAllStyles] = useState(true);
 	const [allWeights, setAllWeights] = useState(true);
 	const [defaultCharset, setDefaultCharset] = useState(true);
 
 	// We take the name from the fonts array here to avoid having to wait
 	// for the fetch call to the API to return to render the name
-	const fontName = fonts?.find((f) => f.id == id)?.name ?? "";
+	const fontName = fonts?.find((f) => f.id == fontId)?.name ?? "";
 
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
@@ -133,7 +133,7 @@ function VariantSelector({ id }: { id: string }) {
 		for (const subset of subsets) {
 			for (const weight of weights) {
 				for (const style of styles) {
-					fontFiles.push(`${id}_${subset}_${weight}_${style}`);
+					fontFiles.push(`${fontId}_${subset}_${weight}_${style}`);
 				}
 			}
 		}
@@ -309,7 +309,7 @@ function Main() {
 												className="w-72 rounded-md border border-2 bg-background p-4"
 												sideOffset={5}
 											>
-												<VariantSelector id={font.id} />
+												<DownloadForm fontId={font.id} />
 												<Popover.Close
 													className="absolute top-3 right-4 outline-none focus:text-blue-500"
 													aria-label="Close"
