@@ -322,12 +322,14 @@ function FontScroller({ filter }: { filter: string }) {
 						</span>
 						<Popover.Root>
 							<Popover.Trigger asChild>
-								<button
-									aria-label={`Download ${font.name}`}
-									className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
-								>
-									<DownloadSimple size={32} />
-								</button>
+								<div>
+									<button
+										aria-label={`Download ${font.name}`}
+										className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
+									>
+										<DownloadSimple size={32} />
+									</button>
+								</div>
 							</Popover.Trigger>
 							<Popover.Portal>
 								<Popover.Content
@@ -368,7 +370,7 @@ function App() {
 						<div className="text-2xl font-semibold">
 							<Logo />
 						</div>
-						<h1 className="font-semibold text-md hidden sm:block pl-6 tracking-tight">
+						<h1 className="font-semibold text-md hidden md:block pl-6 tracking-tight">
 							webfont download service
 						</h1>
 					</div>
@@ -379,7 +381,7 @@ function App() {
 							onChange={(e) => setFilter(e.target.value)}
 							type="text"
 							aria-label="Search"
-							className="border outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
+							className="border w-44 sm:w-56 outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
 						/>
 					</label>
 				</div>
