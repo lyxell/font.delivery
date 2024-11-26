@@ -2,7 +2,11 @@ import { create } from "zustand";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import fuzzysort from "fuzzysort";
-import { BoxArrowDown, Check } from "@phosphor-icons/react";
+import {
+	BoxArrowDown,
+	Check,
+	ListMagnifyingGlass,
+} from "@phosphor-icons/react";
 import clsx from "clsx";
 import { downloadZip } from "client-zip";
 import {
@@ -311,12 +315,15 @@ function Main() {
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
 				</div>
-				<input
-					value={filter}
-					onChange={(e) => setFilter(e.target.value)}
-					type="text"
-					className="border"
-				/>
+				<div className="flex items-center gap-2">
+					<ListMagnifyingGlass size={32} />
+					<input
+						value={filter}
+						onChange={(e) => setFilter(e.target.value)}
+						type="text"
+						className="border border-zinc-300 px-2 py-1.5 rounded"
+					/>
+				</div>
 				<div className="text-muted-foreground">
 					<button
 						onClick={() => setDownloading(true)}
