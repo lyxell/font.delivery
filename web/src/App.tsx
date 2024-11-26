@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
+import fuzzysort from "fuzzysort";
 import { BoxArrowDown, Check } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { downloadZip } from "client-zip";
@@ -128,13 +129,19 @@ const useFontStore = create<FontStore>((set) => ({
 		}),
 }));
 
-interface VirtualScrollProps {
-	items: Font[];
+interface VirtualScrollProps<T> {
+	items: T[];
 	itemHeight: number;
-	renderItem: (item: Font, index: number) => React.ReactNode;
+	renderItem: (item: T, index: number) => React.ReactNode;
+	getId: (t: T) => string;
 }
 
-function VirtualScroll({ items, itemHeight, renderItem }: VirtualScrollProps) {
+function VirtualScroll<T>({
+	items,
+	getId,
+	itemHeight,
+	renderItem,
+}: VirtualScrollProps<T>) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [offset, setOffset] = useState(0);
 
@@ -171,7 +178,7 @@ function VirtualScroll({ items, itemHeight, renderItem }: VirtualScrollProps) {
 			>
 				{items.slice(startIndex, endIndex).map((font, i) => (
 					<div
-						key={font.id}
+						key={getId(font)}
 						style={{
 							position: "absolute",
 							top: `${(i + startIndex) * itemHeight}px`,
@@ -286,6 +293,11 @@ function Main() {
 	const { selectedFonts, selectFont } = useFontStore();
 	const [downloading, setDownloading] = useState(false);
 	const { data: fonts } = useFonts();
+	const [filter, setFilter] = useState("");
+
+	const backup = fonts ?? [];
+
+	const sortedResult = fuzzysort.go(filter, backup, { key: "name" });
 
 	return (
 		<div
@@ -296,6 +308,12 @@ function Main() {
 				<div className="text-2xl font-semibold pr-12">
 					<Logo />
 				</div>
+				<input
+					value={filter}
+					onChange={(e) => setFilter(e.target.value)}
+					type="text"
+					className="border"
+				/>
 				<div className="text-muted-foreground">
 					<button
 						onClick={() => setDownloading(true)}
@@ -316,9 +334,10 @@ function Main() {
 			)}
 			<div className="overflow-auto flex-grow">
 				<VirtualScroll
-					items={fonts ?? []}
+					items={[...sortedResult]}
+					getId={(t) => t.obj.id}
 					itemHeight={180}
-					renderItem={(font: Font) => (
+					renderItem={({ obj: font }) => (
 						<div
 							key={font.id}
 							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
