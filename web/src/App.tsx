@@ -1,15 +1,13 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import fuzzysort from "fuzzysort";
-import { DownloadSimple, ListMagnifyingGlass, X } from "@phosphor-icons/react";
+import { DownloadSimple, ListMagnifyingGlass } from "@phosphor-icons/react";
 import { downloadZip } from "client-zip";
 import {
 	QueryClient,
 	QueryClientProvider,
 	useQuery,
 } from "@tanstack/react-query";
-
-import * as Popover from "@radix-ui/react-popover";
 
 const queryClient = new QueryClient();
 
@@ -289,6 +287,22 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 function FontScroller({ filter }: { filter: string }) {
 	const { data: fonts } = useFonts();
+	const [currentDownloadPopover, setCurrentDownloadPopover] = useState<
+		string | null
+	>(null);
+
+	// Close popover with Esc-key
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setCurrentDownloadPopover(null);
+			}
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [setCurrentDownloadPopover]);
 
 	if (!fonts) return <></>;
 
@@ -303,53 +317,36 @@ function FontScroller({ filter }: { filter: string }) {
 			getId={(font) => font.id}
 			itemHeight={180}
 			renderItem={(font) => (
-				<div
-					key={font.id}
-					className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
-				>
-					<div
-						className="absolute w-[40px] h-[178px] top-0 right-0 gradient"
-						style={{
-							background: "",
-						}}
-					/>
-					<div className="relative flex justify-between">
+				<div key={font.id} className="h-[179px] border-b w-full flex flex-col">
+					<div className="absolute w-[40px] h-[178px] top-0 right-0 gradient" />
+					<div className="flex flex-row justify-between mt-6">
 						<span className="font-semibold">
 							{font.name}{" "}
 							<span className="text-muted-foreground text-sm font-normal">
 								by {font.designer}
 							</span>
 						</span>
-						<Popover.Root>
-							<Popover.Trigger asChild>
-								<div>
-									<button
-										aria-label={`Download ${font.name}`}
-										className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
-									>
-										<DownloadSimple size={32} />
-									</button>
-								</div>
-							</Popover.Trigger>
-							<Popover.Portal>
-								<Popover.Content
-									align="end"
-									className="w-64 rounded-md border border-2 bg-background p-4"
-									sideOffset={5}
-								>
+						<div className="relative">
+							<button
+								onClick={() =>
+									setCurrentDownloadPopover(
+										currentDownloadPopover == font.id ? null : font.id,
+									)
+								}
+								aria-label={`Download ${font.name}`}
+								className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
+							>
+								<DownloadSimple size={32} />
+							</button>
+							{currentDownloadPopover == font.id && (
+								<div className="absolute mt-2 z-50 right-0 w-64 rounded-md border border-2 bg-background p-4">
 									<DownloadForm fontId={font.id} />
-									<Popover.Close
-										className="absolute top-3 right-4 outline-none focus:text-blue-500"
-										aria-label="Close"
-									>
-										<X size={24} />
-									</Popover.Close>
-								</Popover.Content>
-							</Popover.Portal>
-						</Popover.Root>
+								</div>
+							)}
+						</div>
 					</div>
 					<div
-						className="text-6xl whitespace-nowrap"
+						className="text-6xl whitespace-nowrap overflow-hidden flex-grow leading-[90px]"
 						style={{ fontFamily: `'${font.name}', Tofu` }}
 					>
 						The quick brown fox jumps over the lazy dog
