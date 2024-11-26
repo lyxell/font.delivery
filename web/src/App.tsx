@@ -295,9 +295,12 @@ function Main() {
 	const { data: fonts } = useFonts();
 	const [filter, setFilter] = useState("");
 
-	const backup = fonts ?? [];
+	if (!fonts) return <></>;
 
-	const sortedResult = fuzzysort.go(filter, backup, { key: "name" });
+	const sortedResult =
+		filter.length > 0
+			? fuzzysort.go(filter, fonts, { key: "name" }).map((x) => x.obj)
+			: fonts;
 
 	return (
 		<div
@@ -335,9 +338,9 @@ function Main() {
 			<div className="overflow-auto flex-grow">
 				<VirtualScroll
 					items={[...sortedResult]}
-					getId={(t) => t.obj.id}
+					getId={(font) => font.id}
 					itemHeight={180}
-					renderItem={({ obj: font }) => (
+					renderItem={(font) => (
 						<div
 							key={font.id}
 							className="py-4 h-[179px] border-b border-zinc-150 w-full flex flex-col justify-around overflow-hidden"
