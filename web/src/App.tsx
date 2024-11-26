@@ -361,7 +361,7 @@ function App() {
 	const [filter, setFilter] = useState("");
 	return (
 		<QueryClientProvider client={queryClient}>
-			<div className="container mx-auto h-screen flex flex-col px-6">
+			<div className="container mx-auto h-svh flex flex-col px-6">
 				<div className="flex justify-between items-center py-4">
 					<div className="flex items-end">
 						<div className="text-2xl font-semibold">
