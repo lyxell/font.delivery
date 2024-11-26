@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import fuzzysort from "fuzzysort";
 import { DownloadSimple, ListMagnifyingGlass, X } from "@phosphor-icons/react";
@@ -9,8 +9,9 @@ import {
 	useQuery,
 } from "@tanstack/react-query";
 
-import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
+
+const queryClient = new QueryClient();
 
 interface Font {
 	id: string;
@@ -47,19 +48,17 @@ function useFonts() {
 	});
 }
 
-interface VirtualScrollProps<T> {
-	items: T[];
-	itemHeight: number;
-	renderItem: (item: T, index: number) => React.ReactNode;
-	getId: (t: T) => string;
-}
-
 function VirtualScroll<T>({
 	items,
 	getId,
 	itemHeight,
 	renderItem,
-}: VirtualScrollProps<T>) {
+}: {
+	items: T[];
+	itemHeight: number;
+	renderItem: (item: T, index: number) => ReactNode;
+	getId: (t: T) => string;
+}) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [offset, setOffset] = useState(0);
 
@@ -112,19 +111,17 @@ function VirtualScroll<T>({
 	);
 }
 
-type CheckboxProps = {
-	label: string;
-	checked: boolean;
-	onChange?: (checked: boolean) => void;
-	disabled?: boolean;
-};
-
-export const Checkbox: React.FC<CheckboxProps> = ({
+function Checkbox({
 	label,
 	checked,
 	onChange,
 	disabled,
-}) => {
+}: {
+	label: string;
+	checked: boolean;
+	onChange?: (checked: boolean) => void;
+	disabled?: boolean;
+}) {
 	return (
 		<label className="flex gap-1.5 items-center">
 			<input
@@ -136,7 +133,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 			{label}
 		</label>
 	);
-};
+}
 
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
@@ -283,9 +280,8 @@ function DownloadForm({ fontId }: { fontId: string }) {
 	);
 }
 
-function Main() {
+function FontScroller({ filter }: { filter: string }) {
 	const { data: fonts } = useFonts();
-	const [filter, setFilter] = useState("");
 
 	if (!fonts) return <></>;
 
@@ -295,90 +291,89 @@ function Main() {
 			: fonts;
 
 	return (
-		<div className="container mx-auto h-screen flex flex-col px-6">
-			<div className="flex justify-between items-center py-4">
-				<div className="flex items-end">
-					<div className="text-2xl font-semibold pr-8">
-						<Logo />
+		<VirtualScroll
+			items={[...sortedResult]}
+			getId={(font) => font.id}
+			itemHeight={180}
+			renderItem={(font) => (
+				<div
+					key={font.id}
+					className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
+				>
+					<div className="flex justify-between">
+						<span className="font-semibold">
+							{font.name}{" "}
+							<span className="text-muted-foreground text-sm font-normal">
+								by {font.designer}
+							</span>
+						</span>
+						<Popover.Root>
+							<Popover.Trigger asChild>
+								<button
+									aria-label={`Download ${font.name}`}
+									className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
+								>
+									<DownloadSimple size={32} />
+								</button>
+							</Popover.Trigger>
+							<Popover.Portal>
+								<Popover.Content
+									align="end"
+									className="w-64 rounded-md border border-2 bg-background p-4"
+									sideOffset={5}
+								>
+									<DownloadForm fontId={font.id} />
+									<Popover.Close
+										className="absolute top-3 right-4 outline-none focus:text-blue-500"
+										aria-label="Close"
+									>
+										<X size={24} />
+									</Popover.Close>
+								</Popover.Content>
+							</Popover.Portal>
+						</Popover.Root>
 					</div>
-					<h1 className="font-semibold text-md tracking-tight">
-						webfont download service
-					</h1>
+					<div
+						className="text-6xl whitespace-nowrap"
+						style={{ fontFamily: `'${font.name}', Tofu` }}
+					>
+						The quick brown fox jumps over the lazy dog
+					</div>
 				</div>
-				<label className="flex items-center gap-2">
-					<ListMagnifyingGlass size={32} />
-					<input
-						value={filter}
-						onChange={(e) => setFilter(e.target.value)}
-						type="text"
-						aria-label="Search"
-						className="border outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
-					/>
-				</label>
-			</div>
-			<div className="overflow-auto flex-grow">
-				<VirtualScroll
-					items={[...sortedResult]}
-					getId={(font) => font.id}
-					itemHeight={180}
-					renderItem={(font) => (
-						<div
-							key={font.id}
-							className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
-						>
-							<div className="flex justify-between">
-								<span className="font-semibold">
-									{font.name}{" "}
-									<span className="text-muted-foreground text-sm font-normal">
-										by {font.designer}
-									</span>
-								</span>
-								<div>
-									<Popover.Root>
-										<Popover.Trigger asChild>
-											<button
-												aria-label={`Download ${font.name}`}
-												className="h-12 w-12 justify-center outline-none focus:border-blue-500 border border-2 rounded text-sm flex items-center gap-1 text-md font-medium"
-											>
-												<DownloadSimple size={32} />
-											</button>
-										</Popover.Trigger>
-										<Popover.Portal>
-											<Popover.Content
-												align="end"
-												className="w-64 rounded-md border border-2 bg-background p-4"
-												sideOffset={5}
-											>
-												<DownloadForm fontId={font.id} />
-												<Popover.Close
-													className="absolute top-3 right-4 outline-none focus:text-blue-500"
-													aria-label="Close"
-												>
-													<X size={24} />
-												</Popover.Close>
-											</Popover.Content>
-										</Popover.Portal>
-									</Popover.Root>
-								</div>
-							</div>
-							<div
-								className={`text-6xl whitespace-nowrap`}
-								style={{ fontFamily: `'${font.name}', Tofu` }}
-							>
-								The quick brown fox jumps over the lazy dog
-							</div>
-						</div>
-					)}
-				/>
-			</div>
-		</div>
+			)}
+		/>
 	);
 }
 
 function App() {
+	const [filter, setFilter] = useState("");
 	return (
-		<QueryClientProvider client={new QueryClient()}>
-			<Main />
+		<QueryClientProvider client={queryClient}>
+			<div className="container mx-auto h-screen flex flex-col px-6">
+				<div className="flex justify-between items-center py-4">
+					<div className="flex items-end">
+						<div className="text-2xl font-semibold pr-8">
+							<Logo />
+						</div>
+						<h1 className="font-semibold text-md tracking-tight">
+							webfont download service
+						</h1>
+					</div>
+					<label className="flex items-center gap-2">
+						<ListMagnifyingGlass size={32} />
+						<input
+							value={filter}
+							onChange={(e) => setFilter(e.target.value)}
+							type="text"
+							aria-label="Search"
+							className="border outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
+						/>
+					</label>
+				</div>
+				<div className="overflow-auto flex-grow">
+					<FontScroller filter={filter} />
+				</div>
+			</div>
 		</QueryClientProvider>
 	);
 }
