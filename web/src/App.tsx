@@ -113,10 +113,15 @@ function VirtualScroll<T>({
 }
 
 function VariantSelector({ id }: { id: string }) {
+	const { data: fonts } = useFonts();
 	const { data: font } = useFont(id);
 	const [allStyles, setAllStyles] = useState(true);
 	const [allWeights, setAllWeights] = useState(true);
 	const [defaultCharset, setDefaultCharset] = useState(true);
+
+	// We take the name from the fonts array here to avoid having to wait
+	// for the fetch call to the API to return to render the name
+	const fontName = fonts?.find((f) => f.id == id)?.name ?? "";
 
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
@@ -155,9 +160,7 @@ function VariantSelector({ id }: { id: string }) {
 				gap: 10,
 			}}
 		>
-			<p className="font-medium text-[15px] pr-5">
-				Download {font?.name ?? ""}
-			</p>
+			<p className="font-medium text-[15px] pr-5">Download {fontName}</p>
 			<fieldset>
 				<div className="text-muted-foreground mb-1">Styles</div>
 				<label className="flex gap-1.5">
