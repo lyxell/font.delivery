@@ -247,26 +247,33 @@ function DownloadForm({ fontId }: { fontId: string }) {
 			</div>
 			<div>
 				<div className="text-muted-foreground mb-1">Subsets</div>
-				<Checkbox
-					label="Default subset (latin)"
-					checked={defaultSubsetChecked}
-					onChange={setDefaultSubsetChecked}
-				/>
-				{!defaultSubsetChecked &&
-					font?.subsets.map((subset) => (
+
+				{font?.subsets.length == 1 ? (
+					<Checkbox label={font.subsets[0]} checked={true} disabled />
+				) : (
+					<>
 						<Checkbox
-							key={subset}
-							label={subset}
-							checked={selectedSubsets.includes(subset)}
-							onChange={(checked) =>
-								setSelectedSubsets(
-									checked
-										? [...selectedSubsets, subset]
-										: selectedSubsets.filter((x) => x !== subset),
-								)
-							}
+							label="Default subset (latin)"
+							checked={defaultSubsetChecked}
+							onChange={setDefaultSubsetChecked}
 						/>
-					))}
+						{!defaultSubsetChecked &&
+							font?.subsets.map((subset) => (
+								<Checkbox
+									key={subset}
+									label={subset}
+									checked={selectedSubsets.includes(subset)}
+									onChange={(checked) =>
+										setSelectedSubsets(
+											checked
+												? [...selectedSubsets, subset]
+												: selectedSubsets.filter((x) => x !== subset),
+										)
+									}
+								/>
+							))}
+					</>
+				)}
 			</div>
 			<div className="flex justify-end pt-2">
 				<button
