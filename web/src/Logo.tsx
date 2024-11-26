@@ -2,9 +2,8 @@ export function Logo() {
 	return (
 		<div>
 			<svg
-				width="134"
-				height="48"
 				viewBox="0 0 134 48"
+				className="h-6 sm:h-[48px]"
 				fill="none"
 				xmlns="http://www.w3.org/2000/svg"
 			>

@@ -365,10 +365,10 @@ function App() {
 			<div className="container mx-auto h-screen flex flex-col px-6">
 				<div className="flex justify-between items-center py-4">
 					<div className="flex items-end">
-						<div className="text-2xl font-semibold pr-8">
+						<div className="text-2xl font-semibold">
 							<Logo />
 						</div>
-						<h1 className="font-semibold text-md tracking-tight">
+						<h1 className="font-semibold text-md hidden sm:block pl-6 tracking-tight">
 							webfont download service
 						</h1>
 					</div>
