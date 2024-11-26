@@ -117,7 +117,10 @@ function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: font } = useFont(fontId);
 	const [allStyles, setAllStyles] = useState(true);
 	const [allWeights, setAllWeights] = useState(true);
-	const [defaultCharset, setDefaultCharset] = useState(true);
+	const [defaultSubset, setDefaultSubset] = useState(true);
+	const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
+	const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+	const [selectedSubsets, setSelectedSubsets] = useState<string[]>([]);
 
 	// We take the name from the fonts array here to avoid having to wait
 	// for the fetch call to the API to return to render the name
@@ -126,9 +129,9 @@ function DownloadForm({ fontId }: { fontId: string }) {
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
 
-		const styles = font!.styles;
-		const weights = font!.weights;
-		const subsets = font!.subsets;
+		const styles = allStyles ? font!.styles : selectedStyles;
+		const weights = allWeights ? font!.weights : selectedWeights;
+		const subsets = defaultSubset ? "latin" : selectedSubsets;
 
 		for (const subset of subsets) {
 			for (const weight of weights) {
@@ -145,7 +148,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 		const link = document.createElement("a");
 		link.href = URL.createObjectURL(blob);
-		link.download = "test.zip";
+		link.download = `${font!.id}-fontdelivery.zip`;
 		link.click();
 		link.remove();
 	}
@@ -163,66 +166,115 @@ function DownloadForm({ fontId }: { fontId: string }) {
 			<p className="font-medium text-[15px] pr-5">Download {fontName}</p>
 			<fieldset>
 				<div className="text-muted-foreground mb-1">Styles</div>
-				<label className="flex gap-1.5">
-					<input
-						checked={allStyles}
-						onChange={(e) => setAllStyles(e.target.checked)}
-						type="checkbox"
-					/>
-					All styles
-				</label>
-				{!allStyles && (
+				{font?.styles.length == 1 ? (
+					<label className="flex gap-1.5">
+						<input checked={true} disabled type="checkbox" />
+						{font.styles[0]}
+					</label>
+				) : (
 					<>
-						{font?.styles.map((style) => {
-							return (
-								<label className="flex gap-1.5">
-									<input type="checkbox" />
-									{style}
-								</label>
-							);
-						})}
+						<label className="flex gap-1.5">
+							<input
+								checked={allStyles}
+								onChange={(e) => setAllStyles(e.target.checked)}
+								type="checkbox"
+							/>
+							All styles
+						</label>
+						{!allStyles && (
+							<>
+								{font?.styles.map((style) => {
+									return (
+										<label className="flex gap-1.5">
+											<input
+												checked={selectedStyles.includes(style)}
+												onChange={(e) => {
+													setSelectedStyles(
+														e.target.checked
+															? [...selectedStyles, style]
+															: selectedStyles.filter((x) => x != style),
+													);
+												}}
+												type="checkbox"
+											/>
+											{style}
+										</label>
+									);
+								})}
+							</>
+						)}
 					</>
 				)}
 			</fieldset>
 			<fieldset>
 				<div className="text-muted-foreground mb-1">Weights</div>
-				<label className="flex gap-1.5">
-					<input
-						checked={allWeights}
-						onChange={(e) => setAllWeights(e.target.checked)}
-						type="checkbox"
-					/>
-					All weights
-				</label>
-				{!allWeights && (
+				{font?.weights.length == 1 ? (
+					<label className="flex gap-1.5">
+						<input checked={true} disabled type="checkbox" />
+						{font.weights[0]}{" "}
+						{font.weights[0].includes("-") ? "(variable)" : "(fixed)"}
+					</label>
+				) : (
 					<>
-						{font?.weights.map((weight) => {
-							return (
-								<label className="flex gap-1.5">
-									<input type="checkbox" />
-									{weight}
-								</label>
-							);
-						})}
+						<label className="flex gap-1.5">
+							<input
+								checked={allWeights}
+								onChange={(e) => setAllWeights(e.target.checked)}
+								type="checkbox"
+							/>
+							All weights
+						</label>
+						{!allWeights && (
+							<>
+								{font?.weights.map((weight) => {
+									return (
+										<label className="flex gap-1.5">
+											<input
+												checked={selectedWeights.includes(weight)}
+												onChange={(e) => {
+													setSelectedWeights(
+														e.target.checked
+															? [...selectedWeights, weight]
+															: selectedWeights.filter((x) => x != weight),
+													);
+												}}
+												type="checkbox"
+											/>
+											{weight}
+										</label>
+									);
+								})}
+							</>
+						)}
 					</>
 				)}
 			</fieldset>
 			<fieldset>
-				<div className="text-muted-foreground mb-1">Charsets</div>
+				<div className="text-muted-foreground mb-1">Subsets</div>
 				<label className="flex gap-1.5">
 					<input
-						checked={defaultCharset}
-						onChange={(e) => setDefaultCharset(e.target.checked)}
+						checked={defaultSubset}
+						onChange={(e) => setDefaultSubset(e.target.checked)}
 						type="checkbox"
 					/>
-					Default charset (latin)
+					Default subset (latin)
 				</label>
-				{!defaultCharset && (
+				{!defaultSubset && (
 					<>
 						{font?.subsets.map((subset) => {
 							return (
 								<label className="flex gap-1.5">
-									<input type="checkbox" />
+									<input
+										checked={selectedSubsets.includes(subset)}
+										onChange={(e) => {
+											setSelectedSubsets(
+												e.target.checked
+													? [...selectedSubsets, subset]
+													: selectedSubsets.filter((x) => x != subset),
+											);
+										}}
+										type="checkbox"
+									/>
 									{subset}
 								</label>
 							);
