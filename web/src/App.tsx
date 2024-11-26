@@ -295,10 +295,15 @@ function Main() {
 	return (
 		<div className="container mx-auto h-screen flex flex-col px-6">
 			<div className="flex justify-between items-center py-4">
-				<div className="text-2xl font-semibold pr-12">
-					<Logo />
+				<div className="flex items-end">
+					<div className="text-2xl font-semibold pr-8">
+						<Logo />
+					</div>
+					<h1 className="font-semibold text-md tracking-tight">
+						webfont download service
+					</h1>
 				</div>
-				<div className="flex items-center gap-2">
+				<label className="flex items-center gap-2">
 					<ListMagnifyingGlass size={32} />
 					<input
 						value={filter}
@@ -307,7 +312,7 @@ function Main() {
 						aria-label="Search"
 						className="border outline-none focus:border-blue-500 border-2 px-2 py-1.5 rounded bg-transparent"
 					/>
-				</div>
+				</label>
 			</div>
 			<div className="overflow-auto flex-grow">
 				<VirtualScroll
@@ -320,12 +325,9 @@ function Main() {
 							className="py-4 h-[179px] border-b w-full flex flex-col justify-around overflow-hidden"
 						>
 							<div className="flex justify-between">
-								<span style={{ fontSize: "16px", fontWeight: 600 }}>
+								<span className="font-semibold">
 									{font.name}{" "}
-									<span
-										className="text-muted-foreground text-sm font-normal italic"
-										style={{ fontFamily: `'Vollkorn', Tofu` }}
-									>
+									<span className="text-muted-foreground text-sm font-normal">
 										by {font.designer}
 									</span>
 								</span>
