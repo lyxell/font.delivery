@@ -75,6 +75,11 @@ paths:
                         - latin
                         - latin-ext
                         - vietnamese
+                        - cyrillic
+                        - cyrillic-ext
+                        - hebrew
+                        - greek
+                        - greek-ext
                   weights:
                     type: array
                     description: Available font weights for the font family
@@ -113,6 +118,11 @@ paths:
               - latin
               - latin-ext
               - vietnamese
+              - cyrillic
+              - cyrillic-ext
+              - hebrew
+              - greek
+              - greek-ext
         - name: weight
           in: path
           required: true

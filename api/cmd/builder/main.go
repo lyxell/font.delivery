@@ -61,6 +61,11 @@ func main() {
 		"latin",
 		"latin-ext",
 		"vietnamese",
+		"cyrillic",
+		"cyrillic-ext",
+		"hebrew",
+		"greek",
+		"greek-ext",
 	}
 
 	if err := run(*inputDir, *outputDir, subsets); err != nil {

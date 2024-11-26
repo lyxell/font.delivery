@@ -17,9 +17,14 @@ import (
 
 // Defines values for DownloadFontParamsSubset.
 const (
-	Latin      DownloadFontParamsSubset = "latin"
-	LatinExt   DownloadFontParamsSubset = "latin-ext"
-	Vietnamese DownloadFontParamsSubset = "vietnamese"
+	Cyrillic    DownloadFontParamsSubset = "cyrillic"
+	CyrillicExt DownloadFontParamsSubset = "cyrillic-ext"
+	Greek       DownloadFontParamsSubset = "greek"
+	GreekExt    DownloadFontParamsSubset = "greek-ext"
+	Hebrew      DownloadFontParamsSubset = "hebrew"
+	Latin       DownloadFontParamsSubset = "latin"
+	LatinExt    DownloadFontParamsSubset = "latin-ext"
+	Vietnamese  DownloadFontParamsSubset = "vietnamese"
 )
 
 // Defines values for DownloadFontParamsStyle.
@@ -381,6 +386,9 @@ type GetFontByIDResponse struct {
 		// Id Unique identifier for the font family
 		Id string `json:"id"`
 
+		// Name Name of the font family
+		Name *string `json:"name,omitempty"`
+
 		// Styles Available styles for the font family
 		Styles []GetFontByID200Styles `json:"styles"`
 
@@ -506,6 +514,9 @@ func ParseGetFontByIDResponse(rsp *http.Response) (*GetFontByIDResponse, error) 
 		var dest struct {
 			// Id Unique identifier for the font family
 			Id string `json:"id"`
+
+			// Name Name of the font family
+			Name *string `json:"name,omitempty"`
 
 			// Styles Available styles for the font family
 			Styles []GetFontByID200Styles `json:"styles"`
