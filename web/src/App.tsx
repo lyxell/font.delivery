@@ -466,9 +466,6 @@ function App() {
 						<div className="text-2xl font-semibold">
 							<Logo />
 						</div>
-						<h1 className="font-semibold text-md hidden md:block pl-6 tracking-tight">
-							webfont download service
-						</h1>
 					</div>
 					<label className="flex items-center gap-2">
 						<ListMagnifyingGlass size={32} />
