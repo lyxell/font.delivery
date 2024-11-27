@@ -11,6 +11,8 @@ import {
 
 const queryClient = new QueryClient();
 
+const API_BASE = `/api/v2`
+
 interface Font {
 	id: string;
 	name: string;
@@ -24,7 +26,7 @@ function useFont(id: string) {
 	return useQuery<Font>({
 		queryKey: ["fonts", id],
 		queryFn: async () => {
-			const response = await fetch(`/api/v1/fonts/${id}.json`);
+			const response = await fetch(`${API_BASE}/fonts/${id}.json`);
 			if (!response.ok) {
 				throw new Error(await response.text());
 			}
@@ -37,7 +39,7 @@ function useFonts() {
 	return useQuery<Font[]>({
 		queryKey: ["fonts"],
 		queryFn: async () => {
-			const response = await fetch(`/api/v1/fonts.json`);
+			const response = await fetch(`${API_BASE}/fonts.json`);
 			if (!response.ok) {
 				throw new Error(await response.text());
 			}
@@ -165,7 +167,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 		}
 
 		const downloads = await Promise.all(
-			fontFiles.map((name) => fetch(`/api/v1/download/${name}.woff2`)),
+			fontFiles.map((name) => fetch(`${API_BASE}/download/${name}.woff2`)),
 		);
 		const blob = await downloadZip(downloads).blob();
 

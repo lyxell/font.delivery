@@ -12,13 +12,15 @@ import (
 	"github.com/sfhorg/font.delivery/api/internal/builder"
 )
 
+const API_VERSION = "v2"
+
 func run(inputDir string, outputDir string, subsets []string) error {
 	// Create needed directories
 	tmpDir := "tmp"
-	indexOutputDir := filepath.Join(outputDir, "api", "v1")
-	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
-	jsonOutputDir := filepath.Join(outputDir, "api", "v1", "fonts")
-	cssOutputDir := filepath.Join(outputDir, "api", "v1", "css")
+	indexOutputDir := filepath.Join(outputDir, "api", API_VERSION)
+	fontOutputDir := filepath.Join(outputDir, "api", API_VERSION, "download")
+	jsonOutputDir := filepath.Join(outputDir, "api", API_VERSION, "fonts")
+	cssOutputDir := filepath.Join(outputDir, "api", API_VERSION, "css")
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}

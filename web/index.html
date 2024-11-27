@@ -5,19 +5,12 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>font.delivery</title>
 		<link href="/index.css" rel="stylesheet" />
-		<link
-			rel="preload"
-			href="/api/v1/fonts.json"
-			as="fetch"
-			type="application/json"
-			crossorigin="anonymous"
-		/>
 		<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	</head>
 	<body>
 		<div id="root"></div>
 		<script>
-			const API_BASE = "/api/v1";
+			const API_BASE = "/api/v2";
 			async function fetchFonts() {
 				const response = await fetch(`${API_BASE}/fonts.json`);
 				if (!response.ok) {

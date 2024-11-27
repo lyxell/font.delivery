@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 1.7.0
+  version: 2.0.0
   description: The REST API for font.delivery
   license:
     name: MIT
