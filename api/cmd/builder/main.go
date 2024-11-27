@@ -12,20 +12,18 @@ import (
 	"github.com/sfhorg/font.delivery/api/internal/builder"
 )
 
+const API_VERSION = "v2"
+
 func run(inputDir string, outputDir string, subsets []string) error {
 	// Create needed directories
 	tmpDir := "tmp"
-	indexOutputDir := filepath.Join(outputDir, "api", "v1")
-	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
-	jsonOutputDir := filepath.Join(outputDir, "api", "v1", "fonts")
+	indexOutputDir := filepath.Join(outputDir, "api", API_VERSION)
+	fontOutputDir := filepath.Join(outputDir, "api", API_VERSION, "fonts")
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
 	if err := os.MkdirAll(fontOutputDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-	if err := os.MkdirAll(jsonOutputDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create json output directory: %w", err)
 	}
 
 	// Collect metadata
@@ -33,21 +31,19 @@ func run(inputDir string, outputDir string, subsets []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to collect metadata: %w", err)
 	}
+	// Generate subsets JSON file
+	if err := builder.GenerateSubsetsJSONFile(subsets, indexOutputDir); err != nil {
+		return fmt.Errorf("failed to generate JSON file: %w", err)
+	}
 	// Generate index JSON file
 	if err := builder.GenerateIndexJSONFile(families, subsets, indexOutputDir); err != nil {
 		return fmt.Errorf("failed to generate JSON file: %w", err)
 	}
 
-	// Generate files
+	// Generate WOFF2 files
 	jobs := rill.FromSlice(families, nil)
 	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(family builder.FontFamily) error {
 		fmt.Println("Building", family.Name)
-		if err := builder.GenerateFamilyJSONFile(family, subsets, jsonOutputDir); err != nil {
-			return fmt.Errorf("failed to generate JSON file: %w", err)
-		}
-		if err := builder.GenerateFamilyCSSFile(family, subsets, outputDir); err != nil {
-			return fmt.Errorf("failed to generate CSS file: %w", err)
-		}
 		return builder.GenerateWOFF2Files(family, subsets, inputDir, fontOutputDir, tmpDir)
 	})
 }

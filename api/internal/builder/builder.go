@@ -178,41 +178,6 @@ func getFontWeights(family FontFamily) []string {
 	return result
 }
 
-func generateCSS(family FontFamily, subsets []string) string {
-	var cssOutput strings.Builder
-
-	fontFaceTemplate := `@font-face {
-	font-family: "{family}";
-	font-style: {style};
-	font-weight: {weight};
-	font-display: swap;
-	src: url('{fileName}.woff2') format('woff2');
-	unicode-range: {ranges};
-}
-`
-	for _, subset := range intersection(subsets, family.Subsets) {
-		for _, font := range family.Fonts {
-			fontWeight := getFontWeight(family, font)
-			fileName := strings.Join([]string{
-				family.Id,
-				subset,
-				strings.Join(fontWeight, "-"),
-				font.Style,
-			}, "_")
-			replacer := strings.NewReplacer(
-				"{family}", family.Name,
-				"{style}", font.Style,
-				"{weight}", strings.Join(fontWeight, " "),
-				"{fileName}", fileName,
-				"{ranges}", subsetting.BuildCSSString(subset),
-			)
-			cssOutput.WriteString(replacer.Replace(fontFaceTemplate))
-		}
-	}
-
-	return cssOutput.String()
-}
-
 func getLicenseDirName(license string) string {
 	switch strings.ToLower(license) {
 	case "apache2":
@@ -220,11 +185,6 @@ func getLicenseDirName(license string) string {
 	default:
 		return strings.ToLower(license)
 	}
-}
-
-func GenerateFamilyCSSFile(family FontFamily, subsets []string, outputDir string) error {
-	css := generateCSS(family, subsets)
-	return os.WriteFile(filepath.Join(outputDir, family.Id+".css"), []byte(css), 0o644)
 }
 
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string, fontOutputDir string, tmpDir string) error {
@@ -279,19 +239,53 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 	return nil
 }
 
+func GenerateSubsetsJSONFile(subsets []string, outputDir string) error {
+	type subsetData struct {
+		Subset string `json:"subset"`
+		Ranges string `json:"ranges"`
+	}
+
+	subsetsData := []subsetData{}
+	for _, subset := range subsets {
+		subsetsData = append(subsetsData, subsetData{
+			Subset: subset,
+			Ranges: subsetting.BuildCSSString(subset),
+		})
+	}
+
+	subsetsJSON, err := json.MarshalIndent(subsetsData, "", "  ")
+	if err != nil {
+		return err
+	}
+	outputPath := filepath.Join(outputDir, "subsets.json")
+	return os.WriteFile(outputPath, subsetsJSON, 0o644)
+}
+
 // Write the index JSON file containing names and ids for all families.
 // I.e. api/v1/fonts.json
 func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir string) error {
-	var apiData []map[string]string
+	type fontData struct {
+		ID       string   `json:"id"`
+		Name     string   `json:"name"`
+		Designer string   `json:"designer"`
+		Subsets  []string `json:"subsets"`
+		Weights  []string `json:"weights"`
+		Styles   []string `json:"styles"`
+	}
+
+	var apiData []fontData
 	for _, family := range families {
 		// Skip families that do not have any renderable subsets
 		if len(intersection(subsets, family.Subsets)) == 0 {
 			continue
 		}
-		apiData = append(apiData, map[string]string{
-			"id":       family.Id,
-			"name":     family.Name,
-			"designer": family.Designer,
+		apiData = append(apiData, fontData{
+			ID:       family.Id,
+			Name:     family.Name,
+			Designer: family.Designer,
+			Subsets:  intersection(subsets, family.Subsets),
+			Weights:  getFontWeights(family),
+			Styles:   getFontStyles(family),
 		})
 	}
 	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")
@@ -299,31 +293,4 @@ func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir st
 		return err
 	}
 	return os.WriteFile(filepath.Join(outputDir, "fonts.json"), apiDataBytes, 0o644)
-}
-
-// Write the individual JSON file for the family.
-// E.g. api/v1/fonts/archivo-narrow.json
-func GenerateFamilyJSONFile(family FontFamily, subsets []string, outputDir string) error {
-	// Skip families that do not have any renderable subsets
-	if len(intersection(subsets, family.Subsets)) == 0 {
-		return nil
-	}
-	fontData := struct {
-		ID      string   `json:"id"`
-		Name    string   `json:"name"`
-		Subsets []string `json:"subsets"`
-		Weights []string `json:"weights"`
-		Styles  []string `json:"styles"`
-	}{
-		ID:      family.Id,
-		Name:    family.Name,
-		Subsets: intersection(subsets, family.Subsets),
-		Weights: getFontWeights(family),
-		Styles:  getFontStyles(family),
-	}
-	fontDataBytes, err := json.MarshalIndent(fontData, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(outputDir, family.Id+".json"), fontDataBytes, 0o644)
 }

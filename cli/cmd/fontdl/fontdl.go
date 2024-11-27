@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	client, err := api.NewClientWithResponses("https://font.delivery/api/v1")
+	client, err := api.NewClientWithResponses("https://font.delivery/api/v2")
 
 	fonts, err := client.GetFontsWithResponse(context.Background())
 	if err != nil {
@@ -40,25 +40,20 @@ func main() {
 
 	selectedFont := (*fonts.JSON200)[selected]
 
-	fontDetails, err := client.GetFontByIDWithResponse(context.Background(), selectedFont.Id)
-	if err != nil {
-		log.Fatalf("Error fetching font details: %v", err)
-	}
-
 	var subsetOptions []huh.Option[string]
-	for _, subset := range fontDetails.JSON200.Subsets {
+	for _, subset := range selectedFont.Subsets {
 		subsetOptions = append(subsetOptions, huh.NewOption(string(subset), string(subset)))
 	}
 	var selectedSubset string
 
 	var styleOptions []huh.Option[string]
-	for _, style := range fontDetails.JSON200.Styles {
+	for _, style := range selectedFont.Styles {
 		styleOptions = append(styleOptions, huh.NewOption(string(style), string(style)))
 	}
 	var selectedStyle string
 
 	var weightOptions []huh.Option[string]
-	for _, weight := range fontDetails.JSON200.Weights {
+	for _, weight := range selectedFont.Weights {
 		weightOptions = append(weightOptions, huh.NewOption(weight, weight))
 	}
 	var selectedWeight string

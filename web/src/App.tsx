@@ -11,6 +11,8 @@ import {
 
 const queryClient = new QueryClient();
 
+const API_BASE = `/api/v2`;
+
 interface Font {
 	id: string;
 	name: string;
@@ -20,11 +22,37 @@ interface Font {
 	styles: string[];
 }
 
-function useFont(id: string) {
-	return useQuery<Font>({
-		queryKey: ["fonts", id],
+interface Subset {
+	subset: string;
+	ranges: string;
+}
+
+function generateFontFaceCSS(
+	font: Font,
+	subset: string,
+	weight: string,
+	style: string,
+	unicodeRange: string,
+	urlPrefix: string,
+): string {
+	const url = `${urlPrefix}${font.id}_${subset}_${weight}_${style}.woff2`;
+
+	return `
+@font-face {
+  font-family: '${font.name}';
+  font-style: ${style};
+  font-weight: ${weight.split("-").join(" ")};
+  src: url('${url}') format('woff2');
+  unicode-range: ${unicodeRange};
+}
+      `.trim();
+}
+
+function useFonts() {
+	return useQuery<Font[]>({
+		queryKey: ["fonts"],
 		queryFn: async () => {
-			const response = await fetch(`/api/v1/fonts/${id}.json`);
+			const response = await fetch(`${API_BASE}/fonts.json`);
 			if (!response.ok) {
 				throw new Error(await response.text());
 			}
@@ -33,17 +61,60 @@ function useFont(id: string) {
 	});
 }
 
-function useFonts() {
-	return useQuery<Font[]>({
-		queryKey: ["fonts"],
+function useSubsets() {
+	return useQuery<Subset[]>({
+		queryKey: ["subsets"],
 		queryFn: async () => {
-			const response = await fetch(`/api/v1/fonts.json`);
+			const response = await fetch(`${API_BASE}/subsets.json`);
 			if (!response.ok) {
 				throw new Error(await response.text());
 			}
 			return await response.json();
 		},
 	});
+}
+
+function FontCSSInjector() {
+	const { data: fonts } = useFonts();
+	const { data: subsets } = useSubsets();
+	useEffect(() => {
+		if (!fonts || !subsets) return;
+
+		let cssContent = "";
+
+		for (const font of fonts) {
+			for (const subset of font.subsets) {
+				const unicodeRange = subsets.find((s) => s.subset == subset)?.ranges;
+				if (!unicodeRange) {
+					throw new Error(`Subset ${subset} not found`);
+				}
+				for (const weight of font.weights) {
+					for (const style of font.styles) {
+						cssContent += generateFontFaceCSS(
+							font,
+							subset,
+							weight,
+							style,
+							unicodeRange,
+							`${API_BASE}/fonts/`,
+						);
+					}
+				}
+			}
+		}
+
+		let styleElement = document.createElement("style");
+		styleElement.textContent = cssContent;
+		document.head.appendChild(styleElement);
+
+		return () => {
+			if (styleElement) {
+				document.head.removeChild(styleElement);
+			}
+		};
+	}, [fonts, subsets]);
+
+	return null;
 }
 
 function VirtualScroll<T>({
@@ -135,7 +206,7 @@ function Checkbox({
 
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
-	const { data: font } = useFont(fontId);
+	const { data: apiSubsets } = useSubsets();
 
 	const [allStylesChecked, setAllStylesChecked] = useState(true);
 	const [allWeightsChecked, setAllWeightsChecked] = useState(true);
@@ -147,27 +218,50 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 	// We take the name from the fonts array here to avoid having to wait
 	// for the fetch call to the API to return to render the name
-	const fontName = fonts?.find((f) => f.id == fontId)?.name ?? "";
+	const font = fonts?.find((f) => f.id == fontId);
 
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
 
 		const styles = allStylesChecked ? font!.styles : selectedStyles;
 		const weights = allWeightsChecked ? font!.weights : selectedWeights;
-		const subsets = defaultSubsetChecked ? "latin" : selectedSubsets;
+		const subsets = defaultSubsetChecked ? ["latin"] : selectedSubsets;
+
+		let cssOutput = "";
 
 		for (const subset of subsets) {
+			const unicodeRange = apiSubsets!.find((s) => s.subset == subset)?.ranges;
+			if (!unicodeRange) {
+				throw new Error(`Subset ${subset} not found`);
+			}
 			for (const weight of weights) {
 				for (const style of styles) {
 					fontFiles.push(`${fontId}_${subset}_${weight}_${style}`);
+					cssOutput +=
+						generateFontFaceCSS(
+							font!,
+							subset,
+							weight,
+							style,
+							unicodeRange,
+							"",
+						) + "\n";
 				}
 			}
 		}
 
-		const downloads = await Promise.all(
-			fontFiles.map((name) => fetch(`/api/v1/download/${name}.woff2`)),
+		const fontBlobs = await Promise.all(
+			fontFiles.map((name) => fetch(`${API_BASE}/fonts/${name}.woff2`)),
 		);
-		const blob = await downloadZip(downloads).blob();
+
+		const cssBlob = {
+			name: `${fontId}.css`,
+			lastModified: new Date(),
+			input: cssOutput,
+		};
+		const files = [...fontBlobs, cssBlob];
+
+		const blob = await downloadZip(files).blob();
 
 		const link = document.createElement("a");
 		link.href = URL.createObjectURL(blob);
@@ -178,7 +272,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 	return (
 		<div className="text-sm flex flex-col gap-2">
-			<p className="font-medium pr-5">Download {fontName}</p>
+			<p className="font-medium pr-5">Download {font?.name ?? ""}</p>
 			<div>
 				<div className="text-muted-foreground mb-1">Styles</div>
 				{font?.styles.length == 1 ? (
@@ -391,6 +485,7 @@ function App() {
 					<FontScroller filter={filter} />
 				</div>
 			</div>
+			<FontCSSInjector />
 		</QueryClientProvider>
 	);
 }
