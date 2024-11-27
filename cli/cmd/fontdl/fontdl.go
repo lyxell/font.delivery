@@ -5,17 +5,37 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/sfhorg/font.delivery/cli/internal/api"
 )
 
-func main() {
+// generateFontFaceCSS generates the @font-face CSS rule for a font
+func generateFontFaceCSS(
+	fontName, fontID, subset, weight, style, unicodeRange string,
+) string {
+	url := fmt.Sprintf("%s_%s_%s_%s.woff2", fontID, subset, weight, style)
+	return strings.TrimSpace(fmt.Sprintf(`
+@font-face {
+  font-family: '%s';
+  font-style: %s;
+  font-weight: %s;
+  src: url('%s') format('woff2');
+  unicode-range: %s;
+}
+`, fontName, style, strings.Replace(weight, "-", " ", 1), url, unicodeRange))
+}
+
+func run() error {
 	client, err := api.NewClientWithResponses("https://font.delivery/api/v2")
+	if err != nil {
+		return fmt.Errorf("creating API client: %w", err)
+	}
 
 	fonts, err := client.GetFontsWithResponse(context.Background())
 	if err != nil {
-		log.Fatalf("Error fetching fonts: %v", err)
+		return fmt.Errorf("fetching fonts: %w", err)
 	}
 
 	var fontOptions []huh.Option[int]
@@ -35,7 +55,7 @@ func main() {
 		),
 	).WithTheme(huh.ThemeBase()).Run()
 	if err != nil {
-		log.Fatalf("Error in form: %v", err)
+		return fmt.Errorf("form selection error: %w", err)
 	}
 
 	selectedFont := (*fonts.JSON200)[selected]
@@ -75,9 +95,22 @@ func main() {
 		),
 	).WithTheme(huh.ThemeBase()).Run()
 	if err != nil {
-		log.Fatalf("Error in form: %v", err)
+		return fmt.Errorf("form multi-select error: %w", err)
 	}
 
+	// Fetch subsets
+	subsetsResponse, err := client.GetSubsetsWithResponse(context.Background())
+	if err != nil || subsetsResponse.JSON200 == nil {
+		return fmt.Errorf("fetching subsets: %w", err)
+	}
+
+	// Build a map of subset to unicode ranges
+	subsetRanges := make(map[string]string)
+	for _, subset := range *subsetsResponse.JSON200 {
+		subsetRanges[string(subset.Subset)] = subset.Ranges
+	}
+
+	var cssContent strings.Builder
 	for _, style := range selectedStyles {
 		for _, subset := range selectedSubsets {
 			for _, weight := range selectedWeights {
@@ -89,21 +122,44 @@ func main() {
 					api.DownloadFontParamsStyle(style),
 				)
 				if err != nil {
-					log.Fatalf("Error downloading font: %v", err)
+					return fmt.Errorf("downloading font: %w", err)
 				}
 
 				if response.StatusCode() != 200 {
-					log.Fatalf("Failed to download font, HTTP status: %d", response.StatusCode())
+					return fmt.Errorf("failed to download font, HTTP status: %d", response.StatusCode())
 				}
 
 				fontFileName := fmt.Sprintf("%s_%s_%s_%s.woff2", selectedFont.Id, subset, weight, style)
 				err = os.WriteFile(fontFileName, response.Body, 0o644)
 				if err != nil {
-					log.Fatalf("Error creating font file: %v", err)
+					return fmt.Errorf("writing font file: %w", err)
 				}
 
 				fmt.Printf("Font downloaded and saved as %s\n", fontFileName)
+				cssContent.WriteString(generateFontFaceCSS(
+					selectedFont.Name,
+					selectedFont.Id,
+					string(subset),
+					weight,
+					string(style),
+					subsetRanges[string(subset)],
+				))
+				cssContent.WriteString("\n")
 			}
 		}
+	}
+
+	cssFileName := selectedFont.Id + ".css"
+	err = os.WriteFile(cssFileName, []byte(cssContent.String()), 0o644)
+	if err != nil {
+		return fmt.Errorf("writing CSS file: %w", err)
+	}
+	fmt.Printf("CSS file generated: %s\n", cssFileName)
+	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Fatalf("Error: %v", err)
 	}
 }
