@@ -67,7 +67,7 @@ paths:
                         enum:
                           - normal
                           - italic
-  /download/{id}_{subset}_{weight}_{style}.woff2:
+  /fonts/{id}_{subset}_{weight}_{style}.woff2:
     get:
       operationId: downloadFont
       summary: Download a font

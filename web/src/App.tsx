@@ -96,7 +96,7 @@ function FontCSSInjector() {
 							weight,
 							style,
 							unicodeRange,
-							`${API_BASE}/download/`,
+							`${API_BASE}/fonts/`,
 						);
 					}
 				}
@@ -251,7 +251,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 		}
 
 		const fontBlobs = await Promise.all(
-			fontFiles.map((name) => fetch(`${API_BASE}/download/${name}.woff2`)),
+			fontFiles.map((name) => fetch(`${API_BASE}/fonts/${name}.woff2`)),
 		);
 
 		const cssBlob = {

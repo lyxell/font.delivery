@@ -112,18 +112,18 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// DownloadFont request
-	DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetFonts request
 	GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DownloadFont request
+	DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSubsets request
 	GetSubsets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDownloadFontRequest(c.Server, id, subset, weight, style)
+func (c *Client) GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFontsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,8 @@ func (c *Client) DownloadFont(ctx context.Context, id string, subset DownloadFon
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFontsRequest(c.Server)
+func (c *Client) DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDownloadFontRequest(c.Server, id, subset, weight, style)
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +156,33 @@ func (c *Client) GetSubsets(ctx context.Context, reqEditors ...RequestEditorFn) 
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetFontsRequest generates requests for GetFonts
+func NewGetFontsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/fonts.json")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewDownloadFontRequest generates requests for DownloadFont
@@ -195,34 +222,7 @@ func NewDownloadFontRequest(server string, id string, subset DownloadFontParamsS
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/download/%s_%s_%s_%s.woff2", pathParam0, pathParam1, pathParam2, pathParam3)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetFontsRequest generates requests for GetFonts
-func NewGetFontsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/fonts.json")
+	operationPath := fmt.Sprintf("/fonts/%s_%s_%s_%s.woff2", pathParam0, pathParam1, pathParam2, pathParam3)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -310,35 +310,14 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// DownloadFontWithResponse request
-	DownloadFontWithResponse(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*DownloadFontResponse, error)
-
 	// GetFontsWithResponse request
 	GetFontsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetFontsResponse, error)
 
+	// DownloadFontWithResponse request
+	DownloadFontWithResponse(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*DownloadFontResponse, error)
+
 	// GetSubsetsWithResponse request
 	GetSubsetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSubsetsResponse, error)
-}
-
-type DownloadFontResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DownloadFontResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DownloadFontResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type GetFontsResponse struct {
@@ -383,6 +362,27 @@ func (r GetFontsResponse) StatusCode() int {
 	return 0
 }
 
+type DownloadFontResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DownloadFontResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DownloadFontResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSubsetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -412,15 +412,6 @@ func (r GetSubsetsResponse) StatusCode() int {
 	return 0
 }
 
-// DownloadFontWithResponse request returning *DownloadFontResponse
-func (c *ClientWithResponses) DownloadFontWithResponse(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*DownloadFontResponse, error) {
-	rsp, err := c.DownloadFont(ctx, id, subset, weight, style, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDownloadFontResponse(rsp)
-}
-
 // GetFontsWithResponse request returning *GetFontsResponse
 func (c *ClientWithResponses) GetFontsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetFontsResponse, error) {
 	rsp, err := c.GetFonts(ctx, reqEditors...)
@@ -430,6 +421,15 @@ func (c *ClientWithResponses) GetFontsWithResponse(ctx context.Context, reqEdito
 	return ParseGetFontsResponse(rsp)
 }
 
+// DownloadFontWithResponse request returning *DownloadFontResponse
+func (c *ClientWithResponses) DownloadFontWithResponse(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*DownloadFontResponse, error) {
+	rsp, err := c.DownloadFont(ctx, id, subset, weight, style, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDownloadFontResponse(rsp)
+}
+
 // GetSubsetsWithResponse request returning *GetSubsetsResponse
 func (c *ClientWithResponses) GetSubsetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSubsetsResponse, error) {
 	rsp, err := c.GetSubsets(ctx, reqEditors...)
@@ -437,22 +437,6 @@ func (c *ClientWithResponses) GetSubsetsWithResponse(ctx context.Context, reqEdi
 		return nil, err
 	}
 	return ParseGetSubsetsResponse(rsp)
-}
-
-// ParseDownloadFontResponse parses an HTTP response from a DownloadFontWithResponse call
-func ParseDownloadFontResponse(rsp *http.Response) (*DownloadFontResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DownloadFontResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
 }
 
 // ParseGetFontsResponse parses an HTTP response from a GetFontsWithResponse call
@@ -494,6 +478,22 @@ func ParseGetFontsResponse(rsp *http.Response) (*GetFontsResponse, error) {
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseDownloadFontResponse parses an HTTP response from a DownloadFontWithResponse call
+func ParseDownloadFontResponse(rsp *http.Response) (*DownloadFontResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DownloadFontResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
