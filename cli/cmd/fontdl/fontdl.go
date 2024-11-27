@@ -42,62 +42,68 @@ func main() {
 
 	var subsetOptions []huh.Option[string]
 	for _, subset := range selectedFont.Subsets {
-		subsetOptions = append(subsetOptions, huh.NewOption(string(subset), string(subset)))
+		subsetOptions = append(subsetOptions, huh.NewOption(string(subset), string(subset)).Selected(subset == "latin"))
 	}
-	var selectedSubset string
+	var selectedSubsets []string
 
 	var styleOptions []huh.Option[string]
 	for _, style := range selectedFont.Styles {
-		styleOptions = append(styleOptions, huh.NewOption(string(style), string(style)))
+		styleOptions = append(styleOptions, huh.NewOption(string(style), string(style)).Selected(true))
 	}
-	var selectedStyle string
+	var selectedStyles []string
 
 	var weightOptions []huh.Option[string]
 	for _, weight := range selectedFont.Weights {
-		weightOptions = append(weightOptions, huh.NewOption(weight, weight))
+		weightOptions = append(weightOptions, huh.NewOption(weight, weight).Selected(true))
 	}
-	var selectedWeight string
+	var selectedWeights []string
 
 	err = huh.NewForm(
 		huh.NewGroup(
-			huh.NewSelect[string]().
-				Title("Select a subset").
-				Options(subsetOptions...).
-				Value(&selectedSubset),
-			huh.NewSelect[string]().
-				Title("Select a style").
+			huh.NewMultiSelect[string]().
+				Title("Styles").
 				Options(styleOptions...).
-				Value(&selectedStyle),
-			huh.NewSelect[string]().
-				Title("Select a weight").
+				Value(&selectedStyles),
+			huh.NewMultiSelect[string]().
+				Title("Weights").
 				Options(weightOptions...).
-				Value(&selectedWeight),
+				Value(&selectedWeights),
+			huh.NewMultiSelect[string]().
+				Title("Subsets").
+				Options(subsetOptions...).
+				Value(&selectedSubsets),
 		),
 	).WithTheme(huh.ThemeBase()).Run()
 	if err != nil {
 		log.Fatalf("Error in form: %v", err)
 	}
 
-	response, err := client.DownloadFontWithResponse(
-		context.Background(),
-		selectedFont.Id,
-		api.DownloadFontParamsSubset(selectedSubset),
-		selectedWeight,
-		api.DownloadFontParamsStyle(selectedStyle),
-	)
-	if err != nil {
-		log.Fatalf("Error downloading font: %v", err)
-	}
+	for _, style := range selectedStyles {
+		for _, subset := range selectedSubsets {
+			for _, weight := range selectedWeights {
+				response, err := client.DownloadFontWithResponse(
+					context.Background(),
+					selectedFont.Id,
+					api.DownloadFontParamsSubset(subset),
+					weight,
+					api.DownloadFontParamsStyle(style),
+				)
+				if err != nil {
+					log.Fatalf("Error downloading font: %v", err)
+				}
 
-	if response.StatusCode() != 200 {
-		log.Fatalf("Failed to download font, HTTP status: %d", response.StatusCode())
-	}
+				if response.StatusCode() != 200 {
+					log.Fatalf("Failed to download font, HTTP status: %d", response.StatusCode())
+				}
 
-	fontFileName := fmt.Sprintf("%s_%s_%s_%s.woff2", selectedFont.Id, selectedSubset, selectedWeight, selectedStyle)
-	err = os.WriteFile(fontFileName, response.Body, 0o644)
-	if err != nil {
-		log.Fatalf("Error creating font file: %v", err)
-	}
+				fontFileName := fmt.Sprintf("%s_%s_%s_%s.woff2", selectedFont.Id, subset, weight, style)
+				err = os.WriteFile(fontFileName, response.Body, 0o644)
+				if err != nil {
+					log.Fatalf("Error creating font file: %v", err)
+				}
 
-	fmt.Printf("Font downloaded and saved as %s\n", fontFileName)
+				fmt.Printf("Font downloaded and saved as %s\n", fontFileName)
+			}
+		}
+	}
 }
