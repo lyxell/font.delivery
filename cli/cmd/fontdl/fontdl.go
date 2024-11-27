@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	client, err := api.NewClientWithResponses("http://font.delivery/api/v2")
+	client, err := api.NewClientWithResponses("https://font.delivery/api/v2")
 
 	fonts, err := client.GetFontsWithResponse(context.Background())
 	if err != nil {
