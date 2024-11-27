@@ -22,19 +22,6 @@ interface Font {
 	styles: string[];
 }
 
-function useFont(id: string) {
-	return useQuery<Font>({
-		queryKey: ["fonts", id],
-		queryFn: async () => {
-			const response = await fetch(`${API_BASE}/fonts/${id}.json`);
-			if (!response.ok) {
-				throw new Error(await response.text());
-			}
-			return await response.json();
-		},
-	});
-}
-
 function useFonts() {
 	return useQuery<Font[]>({
 		queryKey: ["fonts"],
@@ -137,7 +124,6 @@ function Checkbox({
 
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
-	const { data: font } = useFont(fontId);
 
 	const [allStylesChecked, setAllStylesChecked] = useState(true);
 	const [allWeightsChecked, setAllWeightsChecked] = useState(true);
@@ -149,7 +135,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 	// We take the name from the fonts array here to avoid having to wait
 	// for the fetch call to the API to return to render the name
-	const fontName = fonts?.find((f) => f.id == fontId)?.name ?? "";
+	const font = fonts?.find((f) => f.id == fontId);
 
 	async function handleDownloadClick() {
 		let fontFiles: string[] = [];
@@ -180,7 +166,7 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 	return (
 		<div className="text-sm flex flex-col gap-2">
-			<p className="font-medium pr-5">Download {fontName}</p>
+			<p className="font-medium pr-5">Download {font?.name ?? ""}</p>
 			<div>
 				<div className="text-muted-foreground mb-1">Styles</div>
 				{font?.styles.length == 1 ? (

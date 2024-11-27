@@ -13,7 +13,7 @@ serve:
 generate-api-files: build
 	./builder --input-dir=fonts/ --output-dir=dist/
 
-generate-api-reference:
+generate-api-docs:
 	mkdir -p dist/reference
 	redocly lint api.yml
 	redocly build-docs --output=dist/reference/index.html api.yml
