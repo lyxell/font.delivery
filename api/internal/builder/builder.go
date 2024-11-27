@@ -222,9 +222,41 @@ func getLicenseDirName(license string) string {
 	}
 }
 
-func GenerateFamilyCSSFile(family FontFamily, subsets []string, outputDir string) error {
-	css := generateCSS(family, subsets)
-	return os.WriteFile(filepath.Join(outputDir, family.Id+".css"), []byte(css), 0o644)
+func GenerateFamilyCSSFiles(family FontFamily, subsets []string, outputDir string) error {
+
+	fontFaceTemplate := `@font-face {
+	font-family: "{family}";
+	font-style: {style};
+	font-weight: {weight};
+	font-display: swap;
+	src: url('{fileName}.woff2') format('woff2');
+	unicode-range: {ranges};
+}
+`
+	for _, subset := range intersection(subsets, family.Subsets) {
+		for _, font := range family.Fonts {
+			fontWeight := getFontWeight(family, font)
+			fileName := strings.Join([]string{
+				family.Id,
+				subset,
+				strings.Join(fontWeight, "-"),
+				font.Style,
+			}, "_")
+			replacer := strings.NewReplacer(
+				"{family}", family.Name,
+				"{style}", font.Style,
+				"{weight}", strings.Join(fontWeight, " "),
+				"{fileName}", fileName,
+				"{ranges}", subsetting.BuildCSSString(subset),
+			)
+			outputFile := fmt.Sprintf("%s_%s_%s_%s.css", family.Id, subset, strings.Join(fontWeight, "-"), font.Style)
+			err := os.WriteFile(filepath.Join(outputDir, outputFile), []byte(replacer.Replace(fontFaceTemplate)), 0o644)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string, fontOutputDir string, tmpDir string) error {

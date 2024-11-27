@@ -18,6 +18,7 @@ func run(inputDir string, outputDir string, subsets []string) error {
 	indexOutputDir := filepath.Join(outputDir, "api", "v1")
 	fontOutputDir := filepath.Join(outputDir, "api", "v1", "download")
 	jsonOutputDir := filepath.Join(outputDir, "api", "v1", "fonts")
+	cssOutputDir := filepath.Join(outputDir, "api", "v1", "css")
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -26,6 +27,9 @@ func run(inputDir string, outputDir string, subsets []string) error {
 	}
 	if err := os.MkdirAll(jsonOutputDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create json output directory: %w", err)
+	}
+	if err := os.MkdirAll(cssOutputDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create css output directory: %w", err)
 	}
 
 	// Collect metadata
@@ -45,8 +49,8 @@ func run(inputDir string, outputDir string, subsets []string) error {
 		if err := builder.GenerateFamilyJSONFile(family, subsets, jsonOutputDir); err != nil {
 			return fmt.Errorf("failed to generate JSON file: %w", err)
 		}
-		if err := builder.GenerateFamilyCSSFile(family, subsets, outputDir); err != nil {
-			return fmt.Errorf("failed to generate CSS file: %w", err)
+		if err := builder.GenerateFamilyCSSFiles(family, subsets, cssOutputDir); err != nil {
+			return fmt.Errorf("failed to generate CSS files: %w", err)
 		}
 		return builder.GenerateWOFF2Files(family, subsets, inputDir, fontOutputDir, tmpDir)
 	})
