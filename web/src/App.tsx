@@ -318,7 +318,7 @@ function FontScroller({ filter }: { filter: string }) {
 			itemHeight={180}
 			renderItem={(font) => (
 				<div key={font.id} className="h-[179px] border-b w-full flex flex-col">
-					<div className="absolute w-[40px] h-[178px] top-0 right-0 gradient" />
+					<div className="absolute w-[40px] h-[178px] top-0 right-0 overflow-gradient" />
 					<div className="flex flex-row justify-between mt-6">
 						<span className="font-semibold">
 							{font.name}{" "}

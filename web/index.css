@@ -2,64 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Set up CSS variables for light and dark mode
+ */
+:root {
+	--bg-color: white;
+	--border-color: #e5e5e5; /* neutral-200 */
+	--text-color: black;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: black;
+		--border-color: #404040; /* neutral-700 */
+		--text-color: white;
+	}
+}
+
 body {
 	font-family: Inter, "sans-serif";
+	background: var(--bg-color);
+	color: var(--text-color);
+}
+
+.bg-background {
+	background: var(--bg-color);
 }
 
 /**
+ * Set background gradient that adapts to color scheme
+ */
+.overflow-gradient {
+	background: linear-gradient(to right, transparent, var(--bg-color));
+}
+
+/**
+ * Set default border color for all elements, adapts to color scheme
+ */
+* {
+	border-color: var(--border-color);
+}
+
+/**
+ * Set muted foreground text color (same in dark and light mode)
+ */
+.text-muted-foreground {
+	@apply text-neutral-500;
+}
+
+/**
+ * The Tofu font.
+ *
  * Source: https://github.com/googlefonts/tofu
  * License: Apache-2.0
  */
 @font-face {
 	font-family: Tofu;
 	src: url("data:font/ttf;base64,AAEAAAAKAIAAAwAgT1MvMl8vXlIAAAEoAAAAYGNtYXAALvz2AAABkAAAAGRnbHlmM4k1BQAAAfwAAAGeaGVhZCdnATUAAACsAAAANmhoZWEIsgRgAAAA5AAAACRobXR4BVcAMwAAAYgAAAAGbG9jYQDPAAAAAAH0AAAABm1heHAABwCPAAABCAAAACBuYW1lDgElPAAAA5wAAADccG9zdHBseXQAAAR4AAAAKwABAAAAAQAAFmIruF8PPPUAAwQAAAAAAOGq3rwAAAAA4arevQBc/wsEngO2AAAABgACAAAAAAAAAAEAAAO2/wYAAAT7AFwAXQSeAAEAAAAAAAAAAAAAAAAAAAABAAEAAAACAI4ABAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAABAT7AZAABQAEApoCZgAAAE0CmgJmAAABZgAzATMAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAATk9ORQDAAAAAIAO2/wYAAAO2APoAAAABAAAAAAIAAs0AAAAgAAAE+wAzAFwAAAAAAAMAAAADAAAAHAADAAEAAAAcAAMACgAAADwABAAgAAAABAAEAAEAAAAB//8AAAAB//8AAAABAAAAAAANAAAAAAAoAAAAAAAAAAIAAAACAAD+DgAAAAEAAP4QABD//wAAAAEAAAAAAM8AAAAEAFz/CwSeA7YAIQBGAHcAjQAAExQWFw4CFx4CFyE+Ajc2JiYnPgInLgInISIOAhMmJjU0NjYzITIWFhUUBgYHHgIVFAYGIyEuAicmNjY3JiYnJTUiBgcGBwcXFzc2Njc2NjMyFhcWBxQHBgYHBgYHBgYVFTM1NDY3NzY2NzY1NCYnJgMzNiYnJgYHBgYVFBYXFhYzMjY3NjZcNzMxNQMaGV98RgGZRnxfGRoDNTExNQMaGV98Rv5nR3teNa8qLkRzRwGZR3NEL1Q3OFYxRXRH/mdBbkgJCSpaPh0yFgF+IS8SKwwOKSkIBg0JBhYNEhcKEwILBBQOERoGCQVfBQYkEhwIERgXKgwCARYSEiYOCgkJCgkXDAwXCQoJAlxHgzExfohBQWI4AwM4YkFBiH4xMX2JQUFiOAI2X37+8iVnOEd2RkZ2RzpmShEQSmY7R3ZGATtmQEB1VxMIGhTYAg8MFSogDhAbCA8EBgUICBIaEg8IFQ4RGQ0MHA4kHAoUCCYQHg4hIB8vFSb+IBMhBwgJDwgXDA0XCAoJCQoIFwAAAAAABgBOAAMAAQQJAAEACAAAAAMAAQQJAAIADgAIAAMAAQQJAAMALgAWAAMAAQQJAAQAGABEAAMAAQQJAAUAGgBcAAMAAQQJAAYAGAB2AFQAbwBmAHUAUgBlAGcAdQBsAGEAcgAxAC4AMAAwADAAOwBOAE8ATgBFADsAVABvAGYAdQAtAFIAZQBnAHUAbABhAHIAVABvAGYAdQAgAFIAZQBnAHUAbABhAHIAVgBlAHIAcwBpAG8AbgAgADEALgAwADAAMABUAG8AZgB1AC0AUgBlAGcAdQBsAGEAcgACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAECBHRvZnUA");
-}
-
-.bg-background {
-	background: white;
-}
-
-@media (prefers-color-scheme: dark) {
-	body {
-		background: black;
-		color: white;
-	}
-	.bg-background {
-		background: black;
-	}
-}
-
-/**
- * This rules creates a background gradient that is light on light mode
- * and dark on dark mode.
- */
-.gradient {
-	background: linear-gradient(to right, transparent, white);
-}
-@media (prefers-color-scheme: dark) {
-	.gradient {
-		background: linear-gradient(to right, transparent, black);
-	}
-}
-
-/**
- * This rule sets the text color for .text-muted-foreground, it
- * has the same value in light and dark mode
- */
-
-.text-muted-foreground {
-	@apply text-neutral-500;
-}
-
-/**
- * These rules apply a default border color on all elements that
- * adapts to light/dark mode
- */
-* {
-	@apply border-neutral-200;
-}
-@media (prefers-color-scheme: dark) {
-	* {
-		@apply border-neutral-700;
-	}
 }
