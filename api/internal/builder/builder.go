@@ -223,7 +223,6 @@ func getLicenseDirName(license string) string {
 }
 
 func GenerateFamilyCSSFiles(family FontFamily, subsets []string, outputDir string) error {
-
 	fontFaceTemplate := `@font-face {
 	font-family: "{family}";
 	font-style: {style};
@@ -311,19 +310,54 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 	return nil
 }
 
+func GenerateSubsetsJSONFile(subsets []string, outputDir string) error {
+
+	type subsetData struct {
+		Subset       string `json:"subset"`
+		Ranges string `json:"ranges"`
+	}
+
+	subsetsData := []subsetData{}
+	for _, subset := range subsets {
+		subsetsData = append(subsetsData, subsetData{
+			Subset: subset,
+			Ranges: subsetting.BuildCSSString(subset),
+		})
+	}
+
+	subsetsJSON, err := json.MarshalIndent(subsetsData, "", "  ")
+	if err != nil {
+		return err
+	}
+	outputPath := filepath.Join(outputDir, "subsets.json")
+	return os.WriteFile(outputPath, subsetsJSON, 0o644)
+}
+
 // Write the index JSON file containing names and ids for all families.
 // I.e. api/v1/fonts.json
 func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir string) error {
-	var apiData []map[string]string
+	type fontData struct {
+		ID       string   `json:"id"`
+		Name     string   `json:"name"`
+		Designer string   `json:"designer"`
+		Subsets  []string `json:"subsets"`
+		Weights  []string `json:"weights"`
+		Styles   []string `json:"styles"`
+	}
+
+	var apiData []fontData
 	for _, family := range families {
 		// Skip families that do not have any renderable subsets
 		if len(intersection(subsets, family.Subsets)) == 0 {
 			continue
 		}
-		apiData = append(apiData, map[string]string{
-			"id":       family.Id,
-			"name":     family.Name,
-			"designer": family.Designer,
+		apiData = append(apiData, fontData{
+			ID:       family.Id,
+			Name:     family.Name,
+			Designer: family.Designer,
+			Subsets:  intersection(subsets, family.Subsets),
+			Weights:  getFontWeights(family),
+			Styles:   getFontStyles(family),
 		})
 	}
 	apiDataBytes, err := json.MarshalIndent(apiData, "", "  ")

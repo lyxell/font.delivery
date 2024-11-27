@@ -8,13 +8,12 @@ fmt:
 	gofumpt -w .
 
 serve:
-	miniserve dist/
+	miniserve --compress-response dist/
 
 generate-api-files: build
 	./builder --input-dir=fonts/ --output-dir=dist/
-	cat dist/*.css > dist/api/v1/download/_.css
 
-generate-api-docs:
+generate-api-reference:
 	mkdir -p dist/reference
 	redocly lint api.yml
 	redocly build-docs --output=dist/reference/index.html api.yml
