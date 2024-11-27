@@ -19,19 +19,11 @@ func run(inputDir string, outputDir string, subsets []string) error {
 	tmpDir := "tmp"
 	indexOutputDir := filepath.Join(outputDir, "api", API_VERSION)
 	fontOutputDir := filepath.Join(outputDir, "api", API_VERSION, "download")
-	jsonOutputDir := filepath.Join(outputDir, "api", API_VERSION, "fonts")
-	cssOutputDir := filepath.Join(outputDir, "api", API_VERSION, "css")
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
 	if err := os.MkdirAll(fontOutputDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-	if err := os.MkdirAll(jsonOutputDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create json output directory: %w", err)
-	}
-	if err := os.MkdirAll(cssOutputDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create css output directory: %w", err)
 	}
 
 	// Collect metadata
@@ -48,7 +40,7 @@ func run(inputDir string, outputDir string, subsets []string) error {
 		return fmt.Errorf("failed to generate JSON file: %w", err)
 	}
 
-	// Generate files
+	// Generate WOFF2 files
 	jobs := rill.FromSlice(families, nil)
 	return rill.ForEach(jobs, runtime.GOMAXPROCS(0), func(family builder.FontFamily) error {
 		fmt.Println("Building", family.Name)
