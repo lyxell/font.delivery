@@ -398,6 +398,20 @@ function FontScroller({ filter }: { filter: string }) {
 		};
 	}, [setCurrentDownloadPopover]);
 
+	// Close popover on outside click
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			// Check if the target is inside a .popover-container
+			const found = (event.target as HTMLElement).closest(".popover-container");
+			if (found) return;
+			setCurrentDownloadPopover(null);
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 	if (!fonts) return <></>;
 
 	const sortedResult =
@@ -424,7 +438,7 @@ function FontScroller({ filter }: { filter: string }) {
 									by {font.designer}
 								</span>
 							</span>
-							<div className="relative">
+							<div className="relative popover-container">
 								<button
 									onClick={() =>
 										setCurrentDownloadPopover(
