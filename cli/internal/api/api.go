@@ -118,6 +118,9 @@ type ClientInterface interface {
 	// DownloadFont request
 	DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DownloadLicense request
+	DownloadLicense(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSubsets request
 	GetSubsets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -136,6 +139,18 @@ func (c *Client) GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*
 
 func (c *Client) DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDownloadFontRequest(c.Server, id, subset, weight, style)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DownloadLicense(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDownloadLicenseRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +255,40 @@ func NewDownloadFontRequest(server string, id string, subset DownloadFontParamsS
 	return req, nil
 }
 
+// NewDownloadLicenseRequest generates requests for DownloadLicense
+func NewDownloadLicenseRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/licenses/%s-LICENSE.txt", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSubsetsRequest generates requests for GetSubsets
 func NewGetSubsetsRequest(server string) (*http.Request, error) {
 	var err error
@@ -316,6 +365,9 @@ type ClientWithResponsesInterface interface {
 	// DownloadFontWithResponse request
 	DownloadFontWithResponse(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*DownloadFontResponse, error)
 
+	// DownloadLicenseWithResponse request
+	DownloadLicenseWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DownloadLicenseResponse, error)
+
 	// GetSubsetsWithResponse request
 	GetSubsetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSubsetsResponse, error)
 }
@@ -383,6 +435,27 @@ func (r DownloadFontResponse) StatusCode() int {
 	return 0
 }
 
+type DownloadLicenseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DownloadLicenseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DownloadLicenseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSubsetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -428,6 +501,15 @@ func (c *ClientWithResponses) DownloadFontWithResponse(ctx context.Context, id s
 		return nil, err
 	}
 	return ParseDownloadFontResponse(rsp)
+}
+
+// DownloadLicenseWithResponse request returning *DownloadLicenseResponse
+func (c *ClientWithResponses) DownloadLicenseWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DownloadLicenseResponse, error) {
+	rsp, err := c.DownloadLicense(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDownloadLicenseResponse(rsp)
 }
 
 // GetSubsetsWithResponse request returning *GetSubsetsResponse
@@ -492,6 +574,22 @@ func ParseDownloadFontResponse(rsp *http.Response) (*DownloadFontResponse, error
 	}
 
 	response := &DownloadFontResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseDownloadLicenseResponse parses an HTTP response from a DownloadLicenseWithResponse call
+func ParseDownloadLicenseResponse(rsp *http.Response) (*DownloadLicenseResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DownloadLicenseResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
