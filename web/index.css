@@ -12,7 +12,7 @@
 }
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bg-color: black;
+		--bg-color: #111;
 		--border-color: #404040; /* neutral-700 */
 		--text-color: white;
 	}
