@@ -5,68 +5,24 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>font.delivery</title>
 		<link href="/index.css" rel="stylesheet" />
+		<link
+			rel="preload"
+			href="/api/v2/fonts.json"
+			as="fetch"
+			type="application/json"
+			crossorigin="anonymous"
+		/>
+		<link
+			rel="preload"
+			href="/api/v2/subsets.json"
+			as="fetch"
+			type="application/json"
+			crossorigin="anonymous"
+		/>
 		<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	</head>
 	<body>
 		<div id="root"></div>
-		<script>
-			const API_BASE = "/api/v2";
-			async function fetchFonts() {
-				const response = await fetch(`${API_BASE}/fonts.json`);
-				if (!response.ok) {
-					throw new Error("Error fetching fonts");
-				}
-				return response.json();
-			}
-			async function fetchSubsets() {
-				const response = await fetch(`${API_BASE}/subsets.json`);
-				if (!response.ok) {
-					throw new Error("Error fetching subsets");
-				}
-				return response.json();
-			}
-			function generateFontFace(font, subset, weight, style, unicodeRange) {
-				const url = `${API_BASE}/download/${font.id}_${subset}_${weight}_${style}.woff2`;
-				return `@font-face{font-family: '${font.name}'; font-style: ${style}; font-weight: ${weight}; src: url('${url}') format('woff2'); unicode-range: ${unicodeRange};}`;
-			}
-			async function generateCSS() {
-				try {
-					const promises = [fetchFonts(), fetchSubsets()]
-					const [fonts, subsets] = await Promise.all(promises);
-					const subsetUnicodeMap = subsets.reduce((map, subset) => {
-						map[subset.subset] = subset.ranges;
-						return map;
-					}, {});
-					let cssContent = "";
-					fonts.forEach((font) => {
-						font.subsets.forEach((subset) => {
-							const unicodeRange =
-								subsetUnicodeMap[subset];
-							if (!unicodeRange) throw new Error(`Could not find unicode ranges for subset ${subset}`);
-							font.weights.forEach((weight) => {
-								font.styles.forEach((style) => {
-									cssContent +=
-										generateFontFace(
-											font,
-											subset,
-											weight,
-											style,
-											unicodeRange,
-										) + "\n";
-								});
-							});
-						});
-					});
-					const styleElement = document.createElement("style");
-					styleElement.textContent = cssContent;
-					document.head.appendChild(styleElement);
-				} catch (error) {
-					console.error("Error generating CSS:", error);
-					alert("An error occurred. Check the console for details.");
-				}
-			}
-			generateCSS();
-		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

@@ -11,7 +11,7 @@ import {
 
 const queryClient = new QueryClient();
 
-const API_BASE = `/api/v2`
+const API_BASE = `/api/v2`;
 
 interface Font {
 	id: string;
@@ -20,6 +20,31 @@ interface Font {
 	subsets: string[];
 	weights: string[];
 	styles: string[];
+}
+
+interface Subset {
+	subset: string;
+	ranges: string;
+}
+
+function generateFontFace(
+	font: Font,
+	subset: string,
+	weight: string,
+	style: string,
+	unicodeRange: string,
+): string {
+	const url = `${API_BASE}/download/${font.id}_${subset}_${weight}_${style}.woff2`;
+
+	return `
+@font-face {
+  font-family: '${font.name}';
+  font-style: ${style};
+  font-weight: ${weight};
+  src: url('${url}') format('woff2');
+  unicode-range: ${unicodeRange};
+}
+      `.trim();
 }
 
 function useFonts() {
@@ -34,6 +59,62 @@ function useFonts() {
 		},
 	});
 }
+
+function useSubsets() {
+	return useQuery<Subset[]>({
+		queryKey: ["subsets"],
+		queryFn: async () => {
+			const response = await fetch(`${API_BASE}/subsets.json`);
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+			return await response.json();
+		},
+	});
+}
+
+function FontCSSInjector() {
+	const { data: fonts } = useFonts();
+	const { data: subsets } = useSubsets();
+	useEffect(() => {
+		if (!fonts || !subsets) return;
+
+		let cssContent = "";
+
+		for (const font of fonts) {
+			for (const subset of font.subsets) {
+				const unicodeRange = subsets.find((s) => s.subset == subset)?.ranges;
+				if (!unicodeRange) {
+					throw new Error(`Subset ${subset} not found`);
+				}
+				for (const weight of font.weights) {
+					for (const style of font.styles) {
+						cssContent += generateFontFace(
+							font,
+							subset,
+							weight,
+							style,
+							unicodeRange,
+						);
+					}
+				}
+			}
+		}
+
+		let styleElement = document.createElement("style");
+		styleElement.textContent = cssContent;
+		document.head.appendChild(styleElement);
+
+		return () => {
+			if (styleElement) {
+				document.head.removeChild(styleElement);
+				console.log("CSS removed successfully.");
+			}
+		};
+	}, [fonts, subsets]);
+
+	return null;
+};
 
 function VirtualScroll<T>({
 	items,
@@ -379,6 +460,7 @@ function App() {
 					<FontScroller filter={filter} />
 				</div>
 			</div>
+			<FontCSSInjector />
 		</QueryClientProvider>
 	);
 }
