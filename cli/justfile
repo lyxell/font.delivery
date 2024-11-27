@@ -1,4 +1,4 @@
-tag := `git describe --exact-match --tags || true`
+tag := `git describe --tags --always`
 
 build:
 	oapi-codegen -generate client,types -o internal/api/api.go ../api/api.yml
