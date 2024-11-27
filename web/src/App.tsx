@@ -27,20 +27,21 @@ interface Subset {
 	ranges: string;
 }
 
-function generateFontFace(
+function generateFontFaceCSS(
 	font: Font,
 	subset: string,
 	weight: string,
 	style: string,
 	unicodeRange: string,
+	urlPrefix: string,
 ): string {
-	const url = `${API_BASE}/download/${font.id}_${subset}_${weight}_${style}.woff2`;
+	const url = `${urlPrefix}${font.id}_${subset}_${weight}_${style}.woff2`;
 
 	return `
 @font-face {
   font-family: '${font.name}';
   font-style: ${style};
-  font-weight: ${weight};
+  font-weight: ${weight.split("-").join(" ")};
   src: url('${url}') format('woff2');
   unicode-range: ${unicodeRange};
 }
@@ -89,12 +90,13 @@ function FontCSSInjector() {
 				}
 				for (const weight of font.weights) {
 					for (const style of font.styles) {
-						cssContent += generateFontFace(
+						cssContent += generateFontFaceCSS(
 							font,
 							subset,
 							weight,
 							style,
 							unicodeRange,
+							`${API_BASE}/download/`,
 						);
 					}
 				}
@@ -108,13 +110,12 @@ function FontCSSInjector() {
 		return () => {
 			if (styleElement) {
 				document.head.removeChild(styleElement);
-				console.log("CSS removed successfully.");
 			}
 		};
 	}, [fonts, subsets]);
 
 	return null;
-};
+}
 
 function VirtualScroll<T>({
 	items,
@@ -205,6 +206,7 @@ function Checkbox({
 
 function DownloadForm({ fontId }: { fontId: string }) {
 	const { data: fonts } = useFonts();
+	const { data: apiSubsets } = useSubsets();
 
 	const [allStylesChecked, setAllStylesChecked] = useState(true);
 	const [allWeightsChecked, setAllWeightsChecked] = useState(true);
@@ -223,20 +225,43 @@ function DownloadForm({ fontId }: { fontId: string }) {
 
 		const styles = allStylesChecked ? font!.styles : selectedStyles;
 		const weights = allWeightsChecked ? font!.weights : selectedWeights;
-		const subsets = defaultSubsetChecked ? "latin" : selectedSubsets;
+		const subsets = defaultSubsetChecked ? ["latin"] : selectedSubsets;
+
+		let cssOutput = "";
 
 		for (const subset of subsets) {
+			const unicodeRange = apiSubsets!.find((s) => s.subset == subset)?.ranges;
+			if (!unicodeRange) {
+				throw new Error(`Subset ${subset} not found`);
+			}
 			for (const weight of weights) {
 				for (const style of styles) {
 					fontFiles.push(`${fontId}_${subset}_${weight}_${style}`);
+					cssOutput +=
+						generateFontFaceCSS(
+							font!,
+							subset,
+							weight,
+							style,
+							unicodeRange,
+							"",
+						) + "\n";
 				}
 			}
 		}
 
-		const downloads = await Promise.all(
+		const fontBlobs = await Promise.all(
 			fontFiles.map((name) => fetch(`${API_BASE}/download/${name}.woff2`)),
 		);
-		const blob = await downloadZip(downloads).blob();
+
+		const cssBlob = {
+			name: `${fontId}.css`,
+			lastModified: new Date(),
+			input: cssOutput,
+		};
+		const files = [...fontBlobs, cssBlob];
+
+		const blob = await downloadZip(files).blob();
 
 		const link = document.createElement("a");
 		link.href = URL.createObjectURL(blob);
