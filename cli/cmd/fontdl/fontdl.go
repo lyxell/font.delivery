@@ -110,6 +110,23 @@ func run() error {
 		subsetRanges[string(subset.Subset)] = subset.Ranges
 	}
 
+	// Download license file
+	licenseResponse, err := client.DownloadLicenseWithResponse(context.Background(), selectedFont.Id)
+	if err != nil {
+		return fmt.Errorf("downloading license: %w", err)
+	}
+
+	if licenseResponse.StatusCode() != 200 {
+		return fmt.Errorf("failed to download license, HTTP status: %d", licenseResponse.StatusCode())
+	}
+
+	licenseFileName := fmt.Sprintf("%s-LICENSE.txt", selectedFont.Id)
+	err = os.WriteFile(licenseFileName, licenseResponse.Body, 0o644)
+	if err != nil {
+		return fmt.Errorf("writing license file: %w", err)
+	}
+	fmt.Printf("License file downloaded and saved as %s\n", licenseFileName)
+
 	var cssContent strings.Builder
 	for _, style := range selectedStyles {
 		for _, subset := range selectedSubsets {
