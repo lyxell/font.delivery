@@ -118,8 +118,8 @@ type ClientInterface interface {
 	// GetFonts request
 	GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetFontByID request
-	GetFontByID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetSubsets request
+	GetSubsets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) DownloadFont(ctx context.Context, id string, subset DownloadFontParamsSubset, weight string, style DownloadFontParamsStyle, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -146,8 +146,8 @@ func (c *Client) GetFonts(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFontByID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFontByIDRequest(c.Server, id)
+func (c *Client) GetSubsets(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSubsetsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -240,23 +240,16 @@ func NewGetFontsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGetFontByIDRequest generates requests for GetFontByID
-func NewGetFontByIDRequest(server string, id string) (*http.Request, error) {
+// NewGetSubsetsRequest generates requests for GetSubsets
+func NewGetSubsetsRequest(server string) (*http.Request, error) {
 	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/fonts/%s.json", pathParam0)
+	operationPath := fmt.Sprintf("/subsets.json")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -323,8 +316,8 @@ type ClientWithResponsesInterface interface {
 	// GetFontsWithResponse request
 	GetFontsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetFontsResponse, error)
 
-	// GetFontByIDWithResponse request
-	GetFontByIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetFontByIDResponse, error)
+	// GetSubsetsWithResponse request
+	GetSubsetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSubsetsResponse, error)
 }
 
 type DownloadFontResponse struct {
@@ -360,8 +353,19 @@ type GetFontsResponse struct {
 
 		// Name Name of the font family
 		Name string `json:"name"`
+
+		// Styles Available styles for the font family
+		Styles []GetFonts200Styles `json:"styles"`
+
+		// Subsets Available subsets for the font family
+		Subsets []GetFonts200Subsets `json:"subsets"`
+
+		// Weights Available font weights for the font family
+		Weights []string `json:"weights"`
 	}
 }
+type GetFonts200Styles string
+type GetFonts200Subsets string
 
 // Status returns HTTPResponse.Status
 func (r GetFontsResponse) Status() string {
@@ -379,31 +383,21 @@ func (r GetFontsResponse) StatusCode() int {
 	return 0
 }
 
-type GetFontByIDResponse struct {
+type GetSubsetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Id Unique identifier for the font family
-		Id string `json:"id"`
+	JSON200      *[]struct {
+		// Ranges The Unicode ranges covered by the subset, formatted as a comma-separated list of hexadecimal ranges
+		Ranges string `json:"ranges"`
 
-		// Name Name of the font family
-		Name *string `json:"name,omitempty"`
-
-		// Styles Available styles for the font family
-		Styles []GetFontByID200Styles `json:"styles"`
-
-		// Subsets Available subsets for the font family
-		Subsets []GetFontByID200Subsets `json:"subsets"`
-
-		// Weights Available font weights for the font family
-		Weights []string `json:"weights"`
+		// Subset The name of the subset
+		Subset GetSubsets200Subset `json:"subset"`
 	}
 }
-type GetFontByID200Styles string
-type GetFontByID200Subsets string
+type GetSubsets200Subset string
 
 // Status returns HTTPResponse.Status
-func (r GetFontByIDResponse) Status() string {
+func (r GetSubsetsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -411,7 +405,7 @@ func (r GetFontByIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetFontByIDResponse) StatusCode() int {
+func (r GetSubsetsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -436,13 +430,13 @@ func (c *ClientWithResponses) GetFontsWithResponse(ctx context.Context, reqEdito
 	return ParseGetFontsResponse(rsp)
 }
 
-// GetFontByIDWithResponse request returning *GetFontByIDResponse
-func (c *ClientWithResponses) GetFontByIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetFontByIDResponse, error) {
-	rsp, err := c.GetFontByID(ctx, id, reqEditors...)
+// GetSubsetsWithResponse request returning *GetSubsetsResponse
+func (c *ClientWithResponses) GetSubsetsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSubsetsResponse, error) {
+	rsp, err := c.GetSubsets(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetFontByIDResponse(rsp)
+	return ParseGetSubsetsResponse(rsp)
 }
 
 // ParseDownloadFontResponse parses an HTTP response from a DownloadFontWithResponse call
@@ -485,6 +479,15 @@ func ParseGetFontsResponse(rsp *http.Response) (*GetFontsResponse, error) {
 
 			// Name Name of the font family
 			Name string `json:"name"`
+
+			// Styles Available styles for the font family
+			Styles []GetFonts200Styles `json:"styles"`
+
+			// Subsets Available subsets for the font family
+			Subsets []GetFonts200Subsets `json:"subsets"`
+
+			// Weights Available font weights for the font family
+			Weights []string `json:"weights"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -496,36 +499,27 @@ func ParseGetFontsResponse(rsp *http.Response) (*GetFontsResponse, error) {
 	return response, nil
 }
 
-// ParseGetFontByIDResponse parses an HTTP response from a GetFontByIDWithResponse call
-func ParseGetFontByIDResponse(rsp *http.Response) (*GetFontByIDResponse, error) {
+// ParseGetSubsetsResponse parses an HTTP response from a GetSubsetsWithResponse call
+func ParseGetSubsetsResponse(rsp *http.Response) (*GetSubsetsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetFontByIDResponse{
+	response := &GetSubsetsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Id Unique identifier for the font family
-			Id string `json:"id"`
+		var dest []struct {
+			// Ranges The Unicode ranges covered by the subset, formatted as a comma-separated list of hexadecimal ranges
+			Ranges string `json:"ranges"`
 
-			// Name Name of the font family
-			Name *string `json:"name,omitempty"`
-
-			// Styles Available styles for the font family
-			Styles []GetFontByID200Styles `json:"styles"`
-
-			// Subsets Available subsets for the font family
-			Subsets []GetFontByID200Subsets `json:"subsets"`
-
-			// Weights Available font weights for the font family
-			Weights []string `json:"weights"`
+			// Subset The name of the subset
+			Subset GetSubsets200Subset `json:"subset"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
