@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 2.0.0
+  version: 2.1.0
   description: The REST API for font.delivery
   license:
     name: MIT
@@ -116,6 +116,26 @@ paths:
               schema:
                 type: string
                 format: binary
+        '404':
+          description: Font not found
+  /licenses/{id}-LICENSE.txt:
+    get:
+      operationId: downloadLicense
+      summary: Download the license for a font family
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the font family
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/plain:
+              schema:
+                type: string
         '404':
           description: Font not found
   /subsets.json:
