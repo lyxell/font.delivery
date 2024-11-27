@@ -2,7 +2,7 @@ openapi: 3.0.0
 security: []
 info:
   title: font.delivery REST API
-  version: 2.1.0
+  version: 2.2.0
   description: The REST API for font.delivery
   license:
     name: MIT
@@ -23,7 +23,7 @@ paths:
                 type: array
                 items:
                   type: object
-                  required: ["id", "name", "designer", "subsets", "weights", "styles"]
+                  required: ["id", "name", "designer", "license", "subsets", "weights", "styles"]
                   properties:
                     id:
                       type: string
@@ -37,6 +37,10 @@ paths:
                       type: string
                       description: Name(s) of the designer(s)
                       example: "Omnibus-Type"
+                    license:
+                      type: string
+                      description: The SPDX license identifier for the font family
+                      example: "OFL-1.1"
                     subsets:
                       type: array
                       description: Available subsets for the font family

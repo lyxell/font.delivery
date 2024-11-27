@@ -42,6 +42,10 @@ var ignoredFamilies = []string{
 	"jsmath-cmti10",
 	"jsmath-cmmi10",
 	"jsmath-cmbx10",
+	// Ignore jomolhari and uchen since they use OFL-1.0 rather than OFL-1.1
+	// which our code currently doesn't handle
+	"uchen",
+	"jomolhari",
 }
 
 func run(inputDir string, outputDir string, subsets []string) error {

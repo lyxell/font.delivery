@@ -197,8 +197,23 @@ func getLicenseFileName(license string) string {
 		return "OFL.txt"
 	case "ufl":
 		return "LICENCE.txt"
-	default:
+	case "apache2":
 		return "LICENSE.txt"
+	default:
+		panic("Unexpected license " + license)
+	}
+}
+
+func getLicenseSPDXIdentifier(license string) string {
+	switch strings.ToLower(license) {
+	case "ofl":
+		return "OFL-1.1"
+	case "ufl":
+		return "Ubuntu-font-1.0"
+	case "apache2":
+		return "Apache-2.0"
+	default:
+		panic("Unexpected license " + license)
 	}
 }
 
@@ -313,7 +328,7 @@ func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir st
 			ID:       family.Id,
 			Name:     family.Name,
 			Designer: family.Designer,
-			License:  family.License,
+			License:  getLicenseSPDXIdentifier(family.License),
 			Subsets:  intersection(subsets, family.Subsets),
 			Weights:  getFontWeights(family),
 			Styles:   getFontStyles(family),
