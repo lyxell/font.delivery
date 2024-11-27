@@ -79,4 +79,3 @@ func TestGetFontStylesWithSampleData(t *testing.T) {
 
 	assert.Equal(t, actualStyles, expectedStyles)
 }
-

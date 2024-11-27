@@ -240,9 +240,8 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 }
 
 func GenerateSubsetsJSONFile(subsets []string, outputDir string) error {
-
 	type subsetData struct {
-		Subset       string `json:"subset"`
+		Subset string `json:"subset"`
 		Ranges string `json:"ranges"`
 	}
 
@@ -295,4 +294,3 @@ func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir st
 	}
 	return os.WriteFile(filepath.Join(outputDir, "fonts.json"), apiDataBytes, 0o644)
 }
-
