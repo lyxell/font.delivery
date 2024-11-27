@@ -71,7 +71,7 @@ func parseMetadataProtobuf(path string) (*FamilyProto, error) {
 // METADATA.pb files it finds by walking the directory recursively.
 //
 // The slice of metadata will be sorted by the name of the font family.
-func CollectMetadata(rootDir string) ([]FontFamily, error) {
+func CollectMetadata(rootDir string, ignoreList []string) ([]FontFamily, error) {
 	var metadata []FontFamily
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -82,8 +82,12 @@ func CollectMetadata(rootDir string) ([]FontFamily, error) {
 			if err != nil {
 				return err
 			}
+			id := strings.ToLower(strings.ReplaceAll(familyData.GetName(), " ", "-"))
+			if slices.Contains(ignoreList, id) {
+				return nil
+			}
 			family := FontFamily{
-				Id:       strings.ToLower(strings.ReplaceAll(familyData.GetName(), " ", "-")),
+				Id:       id,
 				Name:     familyData.GetName(),
 				Designer: familyData.GetDesigner(),
 				License:  familyData.GetLicense(),
@@ -187,6 +191,32 @@ func getLicenseDirName(license string) string {
 	}
 }
 
+func getLicenseFileName(license string) string {
+	switch strings.ToLower(license) {
+	case "ofl":
+		return "OFL.txt"
+	case "ufl":
+		return "LICENCE.txt"
+	default:
+		return "LICENSE.txt"
+	}
+}
+
+func GenerateLicenseFile(family FontFamily, inputDir string, outputDir string) error {
+	inputPath := filepath.Join(
+		inputDir,
+		getLicenseDirName(family.License),
+		strings.ToLower(strings.ReplaceAll(family.Name, " ", "")),
+		getLicenseFileName(family.License),
+	)
+	data, err := os.ReadFile(inputPath)
+	if err != nil {
+		return err
+	}
+	outputPath := filepath.Join(outputDir, fmt.Sprintf("%s-LICENSE.txt", family.Id))
+	return os.WriteFile(outputPath, data, 0o644)
+}
+
 func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string, fontOutputDir string, tmpDir string) error {
 	for _, subset := range subsets {
 		// We add the family.Id here to avoid race conditions where goroutines
@@ -198,12 +228,11 @@ func GenerateWOFF2Files(family FontFamily, subsets []string, fontInputDir string
 		}
 	}
 
-	licenseDir := getLicenseDirName(family.License)
 	for _, font := range family.Fonts {
 		// inputPath is where we find the original .tff-file
 		inputPath := filepath.Join(
 			fontInputDir,
-			licenseDir,
+			getLicenseDirName(family.License),
 			strings.ToLower(strings.ReplaceAll(family.Name, " ", "")),
 			font.Filename,
 		)
@@ -268,6 +297,7 @@ func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir st
 		ID       string   `json:"id"`
 		Name     string   `json:"name"`
 		Designer string   `json:"designer"`
+		License  string   `json:"license"`
 		Subsets  []string `json:"subsets"`
 		Weights  []string `json:"weights"`
 		Styles   []string `json:"styles"`
@@ -283,6 +313,7 @@ func GenerateIndexJSONFile(families []FontFamily, subsets []string, outputDir st
 			ID:       family.Id,
 			Name:     family.Name,
 			Designer: family.Designer,
+			License:  family.License,
 			Subsets:  intersection(subsets, family.Subsets),
 			Weights:  getFontWeights(family),
 			Styles:   getFontStyles(family),
