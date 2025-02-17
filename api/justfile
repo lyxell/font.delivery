@@ -4,8 +4,8 @@ build:
 test:
 	go test -coverprofile=coverage.out ./...
 
-fmt:
-	gofumpt -w .
+fmt PATH='.':
+	gofumpt -w {{PATH}}
 
 serve:
 	miniserve --compress-response dist/
