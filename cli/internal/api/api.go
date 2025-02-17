@@ -382,6 +382,9 @@ type GetFontsResponse struct {
 		// Id Unique identifier for the font family
 		Id string `json:"id"`
 
+		// License The SPDX license identifier for the font family
+		License string `json:"license"`
+
 		// Name Name of the font family
 		Name string `json:"name"`
 
@@ -542,6 +545,9 @@ func ParseGetFontsResponse(rsp *http.Response) (*GetFontsResponse, error) {
 
 			// Id Unique identifier for the font family
 			Id string `json:"id"`
+
+			// License The SPDX license identifier for the font family
+			License string `json:"license"`
 
 			// Name Name of the font family
 			Name string `json:"name"`

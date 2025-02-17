@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/sfhorg/font.delivery/cli/internal/api"
+	"github.com/lyxell/font.delivery/cli/internal/api"
 )
 
 // generateFontFaceCSS generates the @font-face CSS rule for a font

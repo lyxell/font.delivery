@@ -57,8 +57,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
-github.com/sfhorg/font.delivery v0.0.0-20241125173544-1f636ad2ef30 h1:iccGS5V0HihVltsLwRYfMOP1Salyi9Hd3/bi1MofO6Y=
-github.com/sfhorg/font.delivery v0.0.0-20241125173544-1f636ad2ef30/go.mod h1:ciNFNwjW6AEyGaUPiRzKhIIOuaF3FfD4zKf9LLXJgjk=
+github.com/lyxell/font.delivery v0.0.0-20241125173544-1f636ad2ef30 h1:iccGS5V0HihVltsLwRYfMOP1Salyi9Hd3/bi1MofO6Y=
+github.com/lyxell/font.delivery v0.0.0-20241125173544-1f636ad2ef30/go.mod h1:ciNFNwjW6AEyGaUPiRzKhIIOuaF3FfD4zKf9LLXJgjk=
 github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad/go.mod h1:qLr4V1qq6nMqFKkMo8ZTx3f+BZEkzsRUY10Xsm2mwU0=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=

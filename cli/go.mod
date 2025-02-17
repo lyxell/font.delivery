@@ -1,4 +1,4 @@
-module github.com/sfhorg/font.delivery/cli
+module github.com/lyxell/font.delivery/cli
 
 go 1.23.3
 

@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/destel/rill"
-	"github.com/sfhorg/font.delivery/api/internal/builder"
+	"github.com/lyxell/font.delivery/api/internal/builder"
 )
 
 const API_VERSION = "v2"
