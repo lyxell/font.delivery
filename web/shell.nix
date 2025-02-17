@@ -2,7 +2,6 @@
 
 pkgs.mkShell {
   nativeBuildInputs = [
-	pkgs.nodePackages.typescript-language-server
 	pkgs.nodejs_22
 	pkgs.just
   ];
